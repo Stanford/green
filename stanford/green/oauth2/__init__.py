@@ -5,7 +5,7 @@ used to get an OAuth2 client access token from an OAuth2 Authorization
 Server.
 
 """
-
+import base64
 import datetime
 import hashlib
 import logging
@@ -132,6 +132,11 @@ class AccessToken():
 class ApiAccessTokenEndpoint():
     """Represents an API endpoint returning an access token.
 
+    endpoint_type: the type of API Access endpoint. Only two types of endpoints are
+    currently recognized:
+        "acs_api": a Stanford ACS API endpoint
+        "oauth2":  a generic OAUth2 Authorization token endpoint
+
     timeout: the maximum time to wait for each request attempt.
 
     url: The full path to the token endpoint, e.g., https://api-dev.example.com/api/v1/token
@@ -140,6 +145,7 @@ class ApiAccessTokenEndpoint():
 
     def __init__(
             self,
+            endpoint_type:     str,
             url:               str,
             client_id:         str,
             client_secret:     str,
@@ -151,6 +157,13 @@ class ApiAccessTokenEndpoint():
         """
         url: the full path to the get-token API endpoint.
         """
+        valid_endpoints = ['acs_api', 'oauth2']
+        if (endpoint_type not in valid_endpoints):
+            msg = f"unrecognized endpont type: '{endpoint_type}'"
+            raise ValueError(msg)
+        else:
+            self.endpoint_type = endpoint_type
+
         self.url           = url
         self.client_id     = client_id
         self.client_secret = client_secret
@@ -182,6 +195,11 @@ class ApiAccessTokenEndpoint():
             now = datetime.datetime.now()
             print(f"[progress] {now} {msg}")
 
+    def is_acs_api(self):
+        return (self.endpoint_type == 'acs_api')
+
+    def is_oauth2(self):
+        return (self.endpoint_type == 'oauth2')
 
     def cache_set(self, value: AccessToken, expires_in: int) -> None:
         """Set the cache to value and expire in expires_in seconds."""
@@ -231,32 +249,8 @@ class ApiAccessTokenEndpoint():
                 self.progress("cache HIT")
                 return access_token_cached
 
-    def _get_token(self) -> AccessToken:
-        """Get the token from the API get-token endpoint (no caching)
-
-        The get-token JSON response contains the token itself and two
-        time-related attributes:
-
-        * expires_at: when the token expires in Zulu (UTC) time.
-
-        * expires_in: the number of seconds from when the token was
-          generated until it expires.
-
-        When creating the AccessToken object we convert the Zulu time
-        expires_at string into a Python timezone-aware datetime object
-        since that is what AccessToken requires.
-
-        Furthermore, AccessToken calculates expires_in itself so we ignore
-        the response's expires_in value.
-
-        """
-        self.progress("entering _get_token")
-
-        url = self.url
-
-        headers                  = self.base_headers
-        headers['client-id']     = self.client_id
-        headers['client-secret'] = self.client_secret
+    def _get_token_response(self, url, headers) -> response:
+        self.progress("entering _get_token_response")
 
         last_error_message = None
         for wait_seconds in self.exp_backoff:
@@ -304,24 +298,113 @@ class ApiAccessTokenEndpoint():
 
         # After all of that, did we actually get an access token?
         if (success):
-            data = response.json()
-            if ('access_token' in data):
-                token          = data['access_token']
-                expires_at_str = data['expires_at']
-
-                # expires_at_str should be in "Zulu" time format, i.e.,
-                # '2014-12-10T12:00:00Z'
-
-                # Convert expires_at (a string) to an offset aware datetime object.
-                expires_at = zulu_string_to_utc(expires_at_str)
-
-                access_token = AccessToken(token, expires_at)
-                return access_token
-            else:
-                msg = 'got a 200 response but could not find access token in data'
-                self.logger.error(msg)
-                raise KeyError(msg)
+            return response
         else:
             msg = f"token request failed; last error message: {last_error_msg}"
             self.logger.error(msg)
             raise HTTPError(msg)
+
+    def __get_token(self):
+        if (self.is_acs_api()):
+            return self.get_token_acs_api()
+        elif (self.is_oauth2()):
+            return self.get_token_oauth2()
+        else:
+            msg = "programming error?!?"
+            raise RuntimeError(msg)
+
+    def get_token_acs_api(self) -> AccessToken:
+        """Get the token from the API get-token endpoint (no caching)
+
+        The get-token JSON response contains the token itself and two
+        time-related attributes:
+
+        * expires_at: when the token expires in Zulu (UTC) time.
+
+        * expires_in: the number of seconds from when the token was
+          generated until it expires.
+
+        When creating the AccessToken object we convert the Zulu time
+        expires_at string into a Python timezone-aware datetime object
+        since that is what AccessToken requires.
+
+        Furthermore, AccessToken calculates expires_in itself so we ignore
+        the response's expires_in value.
+
+        """
+        self.progress("entering get_token_acs_api")
+
+        url = self.url
+
+        headers                  = self.base_headers
+        headers['client-id']     = self.client_id
+        headers['client-secret'] = self.client_secret
+
+        response = self._get_token_response(url, headers)
+
+        data = response.json()
+        if ('access_token' in data):
+            token          = data['access_token']
+            expires_at_str = data['expires_at']
+
+            # expires_at_str should be in "Zulu" time format, i.e.,
+            # '2014-12-10T12:00:00Z'
+
+            # Convert expires_at (a string) to an offset aware datetime object.
+            expires_at = zulu_string_to_utc(expires_at_str)
+
+            access_token = AccessToken(token, expires_at)
+            return access_token
+        else:
+            msg = 'got a 200 response but could not find access token in data'
+            self.logger.error(msg)
+            raise KeyError(msg)
+
+    def get_token_oauth2(self) -> AccessToken:
+        """Get the token from an OAuth2 get-token endpoint (no caching)
+
+        The get-token JSON response contains the token itself and the
+        expires_in attribute
+
+        * expires_in: the number of seconds from when the token was
+          generated until it expires.
+
+        """
+        self.progress("entering get_token_acs_api")
+
+        url = self.url
+
+        headers = self.base_headers
+
+        # Make a Basic Auth header and add it to the headers list.
+        auth_string = f"{self.client_id}:{self.client_secret}"
+        auth_bytes  = auth_string.encode('utf-8')
+        auth_base64 = base64.b64encode(auth_bytes).decode('utf-8')
+        headers['Authorization'] = f"Basic {auth_base64}"
+
+        response = self._get_token_response(url, headers)
+
+        data = response.json()
+
+        if ('access_token' not in data):
+            msg = 'got a 200 response but could not find access token in data'
+            self.logger.error(msg)
+            raise KeyError(msg)
+
+        if ('expires_in' not in data):
+            msg = 'got a 200 response but could not find expires_in attribute in data'
+            self.logger.error(msg)
+            raise KeyError(msg)
+
+        token      = data['access_token']
+        expires_in = data['expires_in']
+
+        # Get the current time in the UTC timezone.
+        current_time = datetime.now(pytz.utc)
+
+        # Add expires_in seconds to the current time
+        expires_at = current_time + timedelta(seconds=60)
+
+        access_token = AccessToken(token, expires_at)
+        return access_token
+
