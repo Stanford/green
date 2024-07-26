@@ -24,8 +24,7 @@ from exponential_backoff_ca import ExponentialBackoff
 from stanford.green.zulutime import dt_to_zulu_string, zulu_string_to_utc
 
 ## TYPING
-from typing import Optional, cast
-#AttributeDict         = dict[str, Any]
+from typing import Optional, cast, Any
 AccessTokenDict = dict[str, str|int|datetime.datetime]
 ## END OF TYPING
 
@@ -153,6 +152,9 @@ class ApiAccessTokenEndpoint():
             timeout:           float=15.0,
             use_cache:         bool=True,
             verbose:           bool=False,
+            # OAuth stuff:
+            grant_type:        str='client_credentials',
+            scope:             Optional[str]=None,
     ):
         """
         url: the full path to the get-token API endpoint.
@@ -168,6 +170,10 @@ class ApiAccessTokenEndpoint():
         self.client_id     = client_id
         self.client_secret = client_secret
         self.exp_backoff   = exp_backoff
+
+        # OAuth settings
+        self.scope      = scope
+        self.grant_type = grant_type
 
         self.timeout       = timeout
 
@@ -258,7 +264,12 @@ class ApiAccessTokenEndpoint():
             msg = "programming error?!?"
             raise RuntimeError(msg)
 
-    def _get_token_response(self, url: str, headers: dict[str, str]) -> requests.Response:
+    def _get_token_response(
+            self,
+            url: str,
+            headers: dict[str, str],
+            data: Optional[dict[Any, Any]] = None
+    ) -> requests.Response:
         self.progress("entering _get_token_response")
 
         last_error_message = None
@@ -272,7 +283,10 @@ class ApiAccessTokenEndpoint():
             success     = False
             error_msg   = None
             try:
-                response = requests.get(url, headers=headers, timeout=self.timeout)
+                if (data is None):
+                    response = requests.get(url, headers=headers, timeout=self.timeout)
+                else:
+                    response = requests.post(url, headers=headers, data=data, timeout=self.timeout)
             except Exception as excpt:
                 error_msg = f"error making request: {str(excpt)}"
             else:
@@ -382,7 +396,12 @@ class ApiAccessTokenEndpoint():
         auth_base64 = base64.b64encode(auth_bytes).decode('utf-8')
         headers['Authorization'] = f"Basic {auth_base64}"
 
-        response = self._get_token_response(url, headers)
+        data = {
+            'grant_type': self.grant_type,
+            'scope': self.scope,
+        }
+
+        response = self._get_token_response(url, headers, data=data)
 
         data = response.json()
 
@@ -405,6 +424,11 @@ class ApiAccessTokenEndpoint():
         # Add expires_in seconds to the current time
         expires_at = current_time + datetime.timedelta(seconds=60)
 
-        access_token = AccessToken(token, expires_at)
+        if (token is None):
+            msg = "token is empty"
+            raise RuntimeError(msg)
+        else:
+            access_token = AccessToken(token, expires_at)
+
         return access_token
 
