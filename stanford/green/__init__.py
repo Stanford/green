@@ -1,4 +1,4 @@
-"""Utilities functions of general use to teh Stanford community.
+"""Utilities functions of general use to the Stanford community.
 """
 
 # pylint: disable=superfluous-parens,invalid-name
