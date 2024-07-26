@@ -1,3 +1,5 @@
+[[_TOC_]]
+
 # Stanford Green
 
 Python libraries generally useful to the Stanford community.
