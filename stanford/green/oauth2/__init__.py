@@ -195,10 +195,10 @@ class ApiAccessTokenEndpoint():
             now = datetime.datetime.now()
             print(f"[progress] {now} {msg}")
 
-    def is_acs_api(self):
+    def is_acs_api(self) -> bool:
         return (self.endpoint_type == 'acs_api')
 
-    def is_oauth2(self):
+    def is_oauth2(self) -> bool:
         return (self.endpoint_type == 'oauth2')
 
     def cache_set(self, value: AccessToken, expires_in: int) -> None:
@@ -249,7 +249,16 @@ class ApiAccessTokenEndpoint():
                 self.progress("cache HIT")
                 return access_token_cached
 
-    def _get_token_response(self, url, headers) -> response:
+    def _get_token(self) -> AccessToken:
+        if (self.is_acs_api()):
+            return self.get_token_acs_api()
+        elif (self.is_oauth2()):
+            return self.get_token_oauth2()
+        else:
+            msg = "programming error?!?"
+            raise RuntimeError(msg)
+
+    def _get_token_response(self, url: str, headers: dict[str, str]) -> requests.Response:
         self.progress("entering _get_token_response")
 
         last_error_message = None
@@ -303,15 +312,6 @@ class ApiAccessTokenEndpoint():
             msg = f"token request failed; last error message: {last_error_msg}"
             self.logger.error(msg)
             raise HTTPError(msg)
-
-    def __get_token(self):
-        if (self.is_acs_api()):
-            return self.get_token_acs_api()
-        elif (self.is_oauth2()):
-            return self.get_token_oauth2()
-        else:
-            msg = "programming error?!?"
-            raise RuntimeError(msg)
 
     def get_token_acs_api(self) -> AccessToken:
         """Get the token from the API get-token endpoint (no caching)
@@ -370,7 +370,7 @@ class ApiAccessTokenEndpoint():
           generated until it expires.
 
         """
-        self.progress("entering get_token_acs_api")
+        self.progress("entering get_token_oauth2")
 
         url = self.url
 
@@ -400,10 +400,10 @@ class ApiAccessTokenEndpoint():
         expires_in = data['expires_in']
 
         # Get the current time in the UTC timezone.
-        current_time = datetime.now(pytz.utc)
+        current_time = datetime.datetime.now(pytz.utc)
 
         # Add expires_in seconds to the current time
-        expires_at = current_time + timedelta(seconds=60)
+        expires_at = current_time + datetime.timedelta(seconds=60)
 
         access_token = AccessToken(token, expires_at)
         return access_token
