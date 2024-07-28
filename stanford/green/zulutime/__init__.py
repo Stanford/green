@@ -10,12 +10,16 @@ import pytz
 def is_zulu_string(zulu_str: str) -> bool:
     """Check if zulu_str is in "Zulu" time format.
 
-      '2014-12-10T12:00:00Z'
+        '2014-12-10T12:00:00Z'
+       or
+        '2014-12-10T12:00:00.123456Z'
+
+       We do NOT allow '2014-12-10T12:00:00.Z'
     """
     if (zulu_str is None):
         return False
 
-    regex = r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ$'
+    regex = r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:[.]\d+)?Z$'
     if (re.match(regex, zulu_str) is None):  # pylint: disable=simplifiable-if-statement
         return False
     else:
