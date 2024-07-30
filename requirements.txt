@@ -1,2 +1,14 @@
 sphinx
+mypy
+exponential_backoff_ca
+
 python-dateutil
+types-python-dateutil
+
+pytz
+types-pytz
+
+types-requests
+
+
+
