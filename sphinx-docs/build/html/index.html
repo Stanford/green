@@ -87,28 +87,74 @@ a string of length of <code class="docutils literal notranslate"><span class="pr
 <dl class="py function">
 <dt class="sig sig-object py" id="stanford.green.zulutime.dt_to_zulu_string">
 <span class="sig-prename descclassname"><span class="pre">stanford.green.zulutime.</span></span><span class="sig-name descname"><span class="pre">dt_to_zulu_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#stanford.green.zulutime.dt_to_zulu_string" title="Link to this definition">¶</a></dt>
-<dd><p>Convert dt to a Zulu string. Assumes that dt is offset aware.</p>
-<p>‘2014-12-10T12:00:00Z’</p>
+<dd><p>Convert a timezone-aware datetime object to a Zulu string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dtime</strong> – a timezone-aware datetime object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a string in Zulu time format (see also
+<a class="reference external" href="https://www.w3.org/TR/NOTE-datetime">https://www.w3.org/TR/NOTE-datetime</a>)</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – if <code class="docutils literal notranslate"><span class="pre">dtime</span></code> is not a timezone-aware <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code>
+object.</p>
+</dd>
+</dl>
+<p><strong>Examples</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">local_tz</span> <span class="o">=</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s1">&#39;America/New_York&#39;</span><span class="p">)</span>
+<span class="n">local_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">local_tz</span><span class="p">)</span>
+<span class="n">dt_to_zulu_string</span><span class="p">(</span><span class="n">local_time</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="s1">&#39;2024-07-30T11:57:10Z&#39;</span>
+
+<span class="n">dt_to_zulu_string</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>                    <span class="o">--&gt;</span> <span class="ne">ValueError</span>
+<span class="n">dt_to_zulu_string</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span> <span class="o">--&gt;</span> <span class="ne">ValueError</span>  <span class="p">(</span><span class="ow">not</span> <span class="n">timezone</span><span class="o">-</span><span class="n">aware</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="stanford.green.zulutime.is_zulu_string">
 <span class="sig-prename descclassname"><span class="pre">stanford.green.zulutime.</span></span><span class="sig-name descname"><span class="pre">is_zulu_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zulu_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.zulutime.is_zulu_string" title="Link to this definition">¶</a></dt>
-<dd><p>Check if zulu_str is in “Zulu” time format.</p>
-<blockquote>
-<div><p>‘2014-12-10T12:00:00Z’</p>
-</div></blockquote>
-<dl class="simple">
-<dt>or</dt><dd><p>‘2014-12-10T12:00:00.123456Z’</p>
+<dd><p>Is <code class="docutils literal notranslate"><span class="pre">zulu_str</span></code> a valid “Zulu” time format string?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zulu_str</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <code class="docutils literal notranslate"><span class="pre">zulu_str</span></code> is a valid Zulu time string, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
 </dd>
 </dl>
-<p>We do NOT allow ‘2014-12-10T12:00:00.Z’</p>
+<p><strong>Examples</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">is_zulu_string</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>                          <span class="o">--&gt;</span> <span class="kc">False</span>
+<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;hello&#39;</span><span class="p">)</span>                       <span class="o">--&gt;</span> <span class="kc">False</span>
+<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34Z&#39;</span><span class="p">)</span>        <span class="o">--&gt;</span> <span class="kc">True</span>
+<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34.123456Z&#39;</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="kc">True</span>
+<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34.Z&#39;</span><span class="p">)</span>       <span class="o">--&gt;</span> <span class="kc">False</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="stanford.green.zulutime.zulu_string_to_utc">
 <span class="sig-prename descclassname"><span class="pre">stanford.green.zulutime.</span></span><span class="sig-name descname"><span class="pre">zulu_string_to_utc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zulu_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">datetime</span></span></span><a class="headerlink" href="#stanford.green.zulutime.zulu_string_to_utc" title="Link to this definition">¶</a></dt>
 <dd><p>Convert zulu_str to a UTC offset aware datetime object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zulu_str</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> in the UTC timezone.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – if <code class="docutils literal notranslate"><span class="pre">zulu_str</span></code> is not a valid Zulu time string.</p>
+</dd>
+</dl>
+<p><strong>Examples</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zulu_string_to_utc</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34Z&#39;</span><span class="p">)</span>  <span class="o">--&gt;</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">07</span><span class="o">-</span><span class="mi">28</span> <span class="mi">21</span><span class="p">:</span><span class="mi">42</span><span class="p">:</span><span class="mi">34</span><span class="o">+</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>
+<span class="n">zulu_string_to_utc</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>                    <span class="o">--&gt;</span> <span class="ne">ValueError</span>
+<span class="n">zulu_string_to_utc</span><span class="p">(</span><span class="s1">&#39;2024-07-28 T21:42:34Z&#39;</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="ne">ValueError</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
