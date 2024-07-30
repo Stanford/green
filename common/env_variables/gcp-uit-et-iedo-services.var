@@ -1,0 +1,184 @@
+# CONFIGURATION
+# Almost all of IEDO's cloud resources are in GCP, so set CLOUD_PLATFORM
+# to "gcp". Override CLOUD_PLATFORM on a per-subproject basis.
+export CLOUD_PLATFORM=gcp
+
+# GCP configuration
+# This first group of variables are documented in the Otica
+# authenticate.mk make module documentations. We force GCLOUD
+# authentication using user credentials by setting GCP_USER_AUTH to true.
+export GCP_PROJECT_ID=uit-et-iedo-services
+export GCP_PROJECT_NUMBER=813193712818
+export GCP_USER_AUTH_DOMAIN=stanford.edu
+export GCP_USER_AUTH=true
+export GCP_ENVIRONMENT=${APP_ENV}
+export GCP_CONFIGURATION=${GCP_PROJECT_ID}-${GCP_ENVIRONMENT}
+export GCP_REGION=us-west1
+export GCP_ZONE=${GCP_REGION}-a
+
+# GCP network settings
+export GCP_DNS_DOMAIN=infra.stanford.edu
+export GCP_DNS_MANAGED_ZONE=${GCP_PROJECT_ID}-iam-zone
+export ACME_DNS_PROVIDER=${GCP_PROJECT_ID}-dns
+export GCP_NAT_TAGS=nat-stanford
+export GCP_NAT_IP=35.233.227.217
+export GCP_VPC_NAME=services
+export GCP_NETWORK=services
+
+# GCP StackDriver Monitoring
+export GCP_MONITORING_PROJECT_ID=${GCP_PROJECT_ID}
+export GCP_MONITORING_USER=monitoring
+export GCP_MONITORING_USER_IAM=${GCP_MONITORING_USER}@${GCP_MONITORING_PROJECT_ID}.iam.gserviceaccount.com
+export GCP_SLACK_CHANNEL=et-iedo-alerts
+
+# GCP artifacts bucket
+export GCP_ARTIFACTS_BUCKET=${GCP_PROJECT_ID}-artifacts
+
+# GCP Google group that are granted permissions to GCP resources (iam.tf)
+export GCP_WORKGROUP=iedo_gcp-ops@stanford.edu
+
+# TERRAFORM
+export TF_VERSION="= 1.7.4"
+export TF_INFRASTRUCTURE_BUCKET=${GCP_PROJECT_ID}-infrastructure
+export TF_BACKEND_PREFIX=terraform/${GCP_PROJECT_ID}/${APP}/${APP_ENV}
+
+# GCP Terraform infrastructure bucket (legacy)
+export GCP_INFRASTRUCTURE_BUCKET=${GCP_PROJECT_ID}-infrastructure
+
+# PYTHON REPOSITORY
+# Configured for GCP Artifact Registry; variables can be used with non-GCP repos.
+export PYTHON_REPOSITORY=python1
+export PYTHON_REPOSITORY_BASE=${GCP_REGION}-python.pkg.dev/${GCP_PROJECT_ID}
+export PYTHON_REPOSITORY_PATH=https://${PYTHON_REPOSITORY_BASE}/${PYTHON_REPOSITORY}
+
+# DOCKER REPOSITORY
+# Configured for GCP Artifact Registry; variables can be used with non-GCP repos.
+export DOCKER_REPOSITORY=docker1
+export DOCKER_REPOSITORY_BASE=${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}
+export DOCKER_REPOSITORY_PATH=${DOCKER_REPOSITORY_BASE}/${DOCKER_REPOSITORY}
+
+# GCP Docker Registry (legacy)
+export DOCKER_REGISTRY=${GCP_REGION}-docker.pkg.dev
+export DOCKER_NAMESPACE=${GCP_PROJECT_ID}/docker1
+export DOCKER_REGISTRY_USERNAME=_json_key
+
+# GCP Artifact Registry Docker repositories. The testing is repository is for
+# playing with pushing Docker images. It should not be used for hosting
+# non-production images (that is what image tags are for).
+export DOCKER_ARTIFACT_REGISTRY_BASE=${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}
+export DOCKER_ARTIFACT_REGISTRY_TESTING=${DOCKER_ARTIFACT_REGISTRY_BASE}/docker-testing
+export DOCKER_ARTIFACT_REGISTRY_PRODUCTION=${DOCKER_ARTIFACT_REGISTRY_BASE}/docker1
+
+# VAULT
+export VAULT_PROJECT_NAME=et-iedo
+export VAULT_ADDR=https://vault.stanford.edu
+export VAULT_AUTH_METHOD=ldap
+export VAULT_CACHE=${HOME}/.vault-local
+
+# SECRETS PATH
+export SEC_PATH=secret/projects/${VAULT_PROJECT_NAME}/${GCP_PROJECT_ID}
+
+# GCP Secrets configuration
+export GCP_KEY_PATH=${SEC_PATH}/common/gcp-provision
+export GCP_KEY_FILE=${VAULT_CACHE}/${GCP_KEY_PATH}
+export EXTERNAL_DNS_GCP_CREDENTIALS_PATH=${SEC_PATH}/common/dns-admin-key
+export EXTERNAL_DNS_DOMAIN_FILTERS=infra.stanford.edu
+export DOCKER_REGISTRY_PASSWORD_PATH=${SEC_PATH}/common/gcr-key
+export DOCKER_REGISTRY_PASSWORD_PATH_GCR_USER=${SEC_PATH}/common/gcr-user
+export DOCKER_REGISTRY_PASSWORD_PATH_GCR_PULL=${SEC_PATH}/common/gcr-pull
+
+# GITLAB
+export GITLAB_SERVER=https://code.stanford.edu
+export GITLAB_SEC_FILE=../.gitlab-ci.sec
+
+# SLACK
+export SLACK_WEBHOOK_PATH=${SEC_PATH}/common/slack/gitlab-integration
+export SLACK_GITLAB_CHANNEL=
+export SLACK_CICD_CHANNEL=
+
+# SPLUNK
+export SPLUNK_ADDON_SA=${SEC_PATH}/common/splunk-addon-sa
+export SPLUNK_SINK_SERVICE_ACCOUNT_PATH=${SEC_PATH}/common/splunk-sink
+
+# KUBERNETES
+export KUBE_PLATFORM=gke
+export KUBE_CLUSTER_NAME=${GCP_ENVIRONMENT}-${GKE_CLUSTER_REGION}
+export KUBE_CLUSTER_LOCATION=${GCP_PROJECT_ID}
+export KUBE_NAMESPACE=${APP_NAMESPACE}
+
+# GKE Configuration
+export GKE_CLUSTER_NAME=${KUBE_CLUSTER_NAME}
+export GKE_CLUSTER_REGION=us-west1
+export GKE_CLUSTER_ZONE=${GKE_CLUSTER_REGION}-a
+
+# GKE_CLUSTER_AVAILABILITY_TYPE should be either "regional" or "zonal".
+# Any other value will not be recognized.
+#
+# If you have a project that uses a GKE cluster of a different
+# availability type than the one defined below you will need to
+# GKE_CLUSTER_AVAILABILITY_TYPE override in the common.var or local.var
+# file.
+#
+# If GKE_CLUSTER_AVAILABILITY_TYPE is not defined you should assume
+# a value of "regional".
+#
+export GKE_CLUSTER_AVAILABILITY_TYPE=regional
+
+# GKE Internal Subnets
+export SUBNET_DMZ_PRIMARY_CIDR=10.0.4.0/24
+export SUBNET_DEV_PRIMARY_CIDR=10.0.12.0/24
+export SUBNET_DEV_SVC_CIDR=10.2.32.0/20
+export SUBNET_DEV_POD_CIDR=10.12.0.0/16
+export SUBNET_STAGE_PRIMARY_CIDR=10.0.11.0/24
+export SUBNET_STAGE_SVC_CIDR=10.2.16.0/20
+export SUBNET_STAGE_POD_CIDR=10.11.0.0/16
+export SUBNET_PROD_PRIMARY_CIDR=10.0.10.0/24
+export SUBNET_PROD_SVC_CIDR=10.2.0.0/20
+export SUBNET_PROD_POD_CIDR=10.10.0.0/16
+
+# GKE Masters Reserved CIDRs
+# (GKE masters in a private cluster limited to a /28 range).
+export GKE_MASTER_CIDR_PROD=172.16.0.16/28
+export GKE_MASTER_CIDR_STAGE=172.16.0.32/28
+export GKE_MASTER_CIDR_DEV=172.16.0.48/28
+
+# GCP Filestore (Capacity in number of TB)
+export FS_CAPACITY=1
+export FS_TIER=STANDARD
+export FS_NAME=filestore-default
+export FS_CIDR=172.16.1.8/29
+
+# GCP Other applications need to know the backup-monitor-user name and email
+export BACKUP_MONITOR_USER=backup-monitor-user
+export BACKUP_MONITOR_USER_EMAIL=${BACKUP_MONITOR_USER}@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+
+# GCP Cloud SQL private IP range (to allow direct VPC connections without the proxy)
+# SUBNET_CLOUDSQL_PRIVATE_BASE together with SUBNET_CLOUDSQL_PRIVATE_PREFIX forms
+# a standard IPv4 CIDR range.
+export SUBNET_CLOUDSQL_PRIVATE_BASE=10.15.0.0
+export SUBNET_CLOUDSQL_PRIVATE_PREFIX=21
+
+# GCP Cloud SQL (MYSQL)
+export CLOUD_SQL_MYSQL_INSTANCE=iedo-mysql-2
+export MYSQL_SEC_PATH=${SEC_PATH}/cloud-sql/mysql
+
+# GCP Cloud SQL (POSTGRES)
+export CLOUD_SQL_POSTGRES_INSTANCE=iedo-postgres-1
+export POSTGRES_SEC_PATH=${SEC_PATH}/cloud-sql/postgres
+
+# GCP Cloud SQL Proxy
+export SQL_PROXY_SERVICE=sql-proxy-gcloud-sqlproxy
+export SQL_PROXY_NAMESPACE=sql-proxy-${GCP_ENVIRONMENT}2
+export SQL_PROXY_HOSTNAME=${SQL_PROXY_SERVICE}.${SQL_PROXY_NAMESPACE}
+export SQL_PROXY_MYSQL_PORT=3306
+export SQL_PROXY_POSTGRES_PORT=5432
+
+# OTICA SUB-PROJECTS DIR
+export SUB_PROJECTS=sub-projects
+
+# Package Wrapper Default Values
+export PKG_BUILD_DOCKER_IMAGE_NAME=us-west1-docker.pkg.dev/uit-et-iedo-services/docker1/debian-package-stanford
+export PKG_SIGN_DOCKER_IMAGE_NAME=us-west1-docker.pkg.dev/uit-et-iedo-services/docker1/debian-package-stanford
+
+# Sometimes all that you need is a DOLLAR (render.sh)
+export DOLLAR=$$

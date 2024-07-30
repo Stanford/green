@@ -1,0 +1,53 @@
+---
+
+# Explanation of the different sections.
+#
+# environment:
+#   toplevel:
+#     # variable files in the environment:toplevel list are synced from the
+#     # toplevel project's common/env_variables/ directory into the
+#     # subproject's common/env_variables directory.
+#     - framework.var
+#   common:
+#     # variable files listed here are included from the
+#     # common/env_variables directory in the current subproject.
+#     - common.var
+#   local:
+#     # variable files listed here are included from the
+#     # directory running the make command.
+#     - local.var
+#
+# makefile_parts:
+#   otica:
+#     # makefile modules listed here are included from the Otica
+#     # source repository.
+#     - framework.mk
+#     - vault.mk
+#     - authenticate.mk
+#   toplevel:
+#     # makefile modules listed here are included from the toplevel's
+#     # common/makefile_parts directory.
+#     # - project.mk
+#   common:
+#     # makefile modules listed here are included from the current
+#     # subproject's common/makefile_parts directory.
+#     # - app.mk
+
+environment:
+  toplevel:
+  - framework.var
+  - gcp-uit-et-iedo-services.var
+  common:
+  - common.var
+  local:
+  - local.var
+makefile_parts:
+  otica:
+    - framework.mk
+    - vault.mk
+    - authenticate.mk
+    - python/pvenv.mk
+  toplevel: []
+  common:
+    - app.mk
+

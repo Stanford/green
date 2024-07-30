@@ -1,0 +1,41 @@
+####################################################################################
+# Otica framework environment variables. This file should be the first
+# entry in the environment:otica list of a subproject's otica.yaml file.
+# If you need to override any of these values do so in a subsequent
+# variable file.
+####################################################################################
+
+# FRAMEWORK_DIR: the absolute path to the Otica framework code. This is
+# usually a git working copy of the Otica source code.
+export FRAMEWORK_DIR=${HOME}/bin/otica
+
+# FRAMEWORK_DIR_SYNC: Every time you run a make command the code in
+# FRAMEWORK_DIR (might) get synced with the upstream source. The variable
+# FRAMEWORK_DIR_SYNC controls if and when this syncing happens. If
+# FRAMEWORK_DIR_SYNC is set to "NO_SYNC" then FRAMEWORK_DIR will never be
+# synced. If set to a positive integer, then FRAMEWORK_DIR is synced
+# if at least this number of seconds has passed since the last
+# sync. Finally, if FRAMEWORK_DIR_SYNC is set to any other value (or not
+# set at all) FRAMEWORK_DIR will be synced everytime any make command
+# (including make with no target) is run.
+export FRAMEWORK_DIR_SYNC=600
+
+# WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+
+# The following settings rarely need to be changed. Change at your own
+# risk.
+
+# FRAMEWORK_GIT_REMOTE: the Git remote to use when pulling the Otica
+# source repository for updates
+#
+# FRAMEWORK_GIT_BRANCH: the branch or tag to use when updating the Otica
+# source repository.
+export FRAMEWORK_GIT_REMOTE=origin
+export FRAMEWORK_GIT_BRANCH=master
+
+# SCRIPTS_DIR: the directory containing the Otica scripts the make modules use.
+# Changing this will almost certainly make everything break.
+export SCRIPTS_DIR=${FRAMEWORK_DIR}/scripts
+
+# FRAMEWORK_BUCKET: the name of the bucket where we store the Otica code.
+export FRAMEWORK_BUCKET=otica
