@@ -1,0 +1,15 @@
+# Define environment-specific variables.
+#
+# Some variables commonly overidden in local.var and examples of their use:
+#
+# export DOCKER_IMAGE_TAGS=dev,bullseye
+#        (used with the docker-develop.mk make module)
+#
+# export HELM_CHART_VERSION=7.5.1
+#        (used with the helm.mk make module)
+#
+# export KUBE_NAMESPACE=my-app-dev
+#        (used with the kube.mk make module)
+#
+# export APP_ENV=dev
+# export GCP_ENVIRONMENT=prod

@@ -39,7 +39,6 @@ class TestGreen(unittest.TestCase):
             # Put in a length that is too short.
             random_uid(length=2)
 
-
     def test_is_zulu_string(self) -> None:
 
         # VALID

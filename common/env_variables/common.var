@@ -1,0 +1,19 @@
+# Define variables common to this subproject.
+#
+# Some variables commonly overidden in common/env-variables/common.var and
+# examples of their use:
+#
+# For docker.mk projects:
+# export DOCKER_IMAGE=<name of docker image>
+# export DOCKER_REGISTRY_LOGIN_TYPE=gcloud
+#
+# For helm-develop.mk projects:
+# export HELM_CHART_NAME=<name of Helm chart>
+#
+# For Kubernetes projects using kube.mk:
+# KUBE_NAMESPACE=my-namespace
+#
+# For Kubernetes projects using helm.mk:
+# export HELM_REPO_URL=
+# export HELM_REPO_NAME=
+# export HELM_CHART_NAME=<name of Helm chart>
