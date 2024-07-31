@@ -14,6 +14,7 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="stanford.green Modules" href="modules.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -26,6 +27,7 @@
 
     <div class="document">
       <div class="documentwrapper">
+        <div class="bodywrapper">
           
 
           <div class="body" role="main">
@@ -33,135 +35,96 @@
   <section id="stanford-green-documentation">
 <h1>stanford-green documentation<a class="headerlink" href="#stanford-green-documentation" title="Link to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
-</div>
-<p id="module-stanford.green">Functions of general use to the Stanford community.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="stanford.green.random_uid">
-<span class="sig-prename descclassname"><span class="pre">stanford.green.</span></span><span class="sig-name descname"><span class="pre">random_uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#stanford.green.random_uid" title="Link to this definition">¶</a></dt>
-<dd><p>Create a random Stanford-compliant uid.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>prefix</strong> (<em>str</em>) – a string prefix (defaults to the empty string)</p></li>
-<li><p><strong>length</strong> (<em>int</em><em> or </em><em>None</em>) – desired length of the resulting uid (optional)</p></li>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">stanford.green Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/base.html">stanford.green</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="modules/base.html#stanford.green.random_uid"><code class="docutils literal notranslate"><span class="pre">random_uid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules/base.html#stanford.green.utc_datetime_secs_from_now"><code class="docutils literal notranslate"><span class="pre">utc_datetime_secs_from_now()</span></code></a></li>
 </ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a random string between three and eight characters long that
-is a valid Stanford uid unless <code class="docutils literal notranslate"><span class="pre">length</span></code> is provided in which case
-the returned string will have length <code class="docutils literal notranslate"><span class="pre">length</span></code>.
-If <code class="docutils literal notranslate"><span class="pre">prefix</span></code> is supplied then the returned
-string will start with <code class="docutils literal notranslate"><span class="pre">prefix</span></code> AND the length of returned string
-will be eight.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Exception</strong> – if <code class="docutils literal notranslate"><span class="pre">prefix</span></code> is eight or more characters there
-is not enough space to put the rest of the randomly generated
-characters and in this case an Excption will be raised.</p>
-</dd>
-</dl>
-<p><strong>Algorithm</strong></p>
-<p>1. If neither <code class="docutils literal notranslate"><span class="pre">prefix</span></code> nor <code class="docutils literal notranslate"><span class="pre">length</span></code> are given then a string of
-length between 3 and 8 is returned.</p>
-<p>2. If <code class="docutils literal notranslate"><span class="pre">length</span></code> is given and is smaller then 3 or larger than 8, an exception
-is raised.</p>
-<p>3. If <code class="docutils literal notranslate"><span class="pre">length</span></code> is given and is between 3 and 8 (inclusive), then
-a string of length of <code class="docutils literal notranslate"><span class="pre">length</span></code> is returned.</p>
-<p>4. If <code class="docutils literal notranslate"><span class="pre">prefix</span></code> is given but not <code class="docutils literal notranslate"><span class="pre">length</span></code>, then a string of length
-8 prefixed by <code class="docutils literal notranslate"><span class="pre">prefix</span></code> is returned.</p>
-<p>5. If <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">length</span></code> are both given, then a string of length
-<code class="docutils literal notranslate"><span class="pre">length</span></code> + the length of <code class="docutils literal notranslate"><span class="pre">prefix</span></code> is returned.</p>
-<p><strong>Examples</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">random_uid</span><span class="p">()</span>           <span class="o">--&gt;</span> <span class="n">dherkk</span>
-<span class="n">random_uid</span><span class="p">()</span>           <span class="o">--&gt;</span> <span class="n">ioervion</span>
-<span class="n">random_uid</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>     <span class="o">--&gt;</span> <span class="n">testcwq</span>
-<span class="n">random_uid</span><span class="p">(</span><span class="s1">&#39;abcdefgh&#39;</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="ne">Exception</span>  <span class="p">(</span><span class="n">prefix</span> <span class="ow">is</span> <span class="n">too</span> <span class="n">long</span><span class="p">)</span>
-<span class="n">random_uid</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>   <span class="o">--&gt;</span> <span class="n">azxlg</span>
-<span class="n">random_uid</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;abc&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-                       <span class="o">--&gt;</span> <span class="n">abclsah</span>
-</pre></div>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="modules/oauth2.html">stanford.green.oauth2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.AccessToken"><code class="docutils literal notranslate"><span class="pre">AccessToken</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.AccessToken.expires_at"><code class="docutils literal notranslate"><span class="pre">AccessToken.expires_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.AccessToken.expires_in"><code class="docutils literal notranslate"><span class="pre">AccessToken.expires_in()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.AccessToken.is_expired"><code class="docutils literal notranslate"><span class="pre">AccessToken.is_expired()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.AccessToken.zulu_time_string"><code class="docutils literal notranslate"><span class="pre">AccessToken.zulu_time_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint._get_token"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint._get_token()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint._get_token_acs_api"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint._get_token_acs_api()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint._get_token_oauth2"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint._get_token_oauth2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint.cache_get"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint.cache_get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint.cache_set"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint.cache_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint.get_token"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint.get_token()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint.is_acs_api"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint.is_acs_api()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint.is_oauth2"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint.is_oauth2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules/oauth2.html#stanford.green.oauth2.ApiAccessTokenEndpoint.progress"><code class="docutils literal notranslate"><span class="pre">ApiAccessTokenEndpoint.progress()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="modules/zulutime.html">stanford.green.zulutime</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="modules/zulutime.html#stanford.green.zulutime.dt_to_zulu_string"><code class="docutils literal notranslate"><span class="pre">dt_to_zulu_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules/zulutime.html#stanford.green.zulutime.is_zulu_string"><code class="docutils literal notranslate"><span class="pre">is_zulu_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules/zulutime.html#stanford.green.zulutime.zulu_string_to_utc"><code class="docutils literal notranslate"><span class="pre">zulu_string_to_utc()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 </div>
-</dd></dl>
-
-<p id="module-stanford.green.zulutime">Functions related to “Zulu” time; see also <a class="reference external" href="https://www.w3.org/TR/NOTE-datetime">https://www.w3.org/TR/NOTE-datetime</a>.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="stanford.green.zulutime.dt_to_zulu_string">
-<span class="sig-prename descclassname"><span class="pre">stanford.green.zulutime.</span></span><span class="sig-name descname"><span class="pre">dt_to_zulu_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#stanford.green.zulutime.dt_to_zulu_string" title="Link to this definition">¶</a></dt>
-<dd><p>Convert a timezone-aware datetime object to a Zulu string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dtime</strong> – a timezone-aware datetime object</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a string in Zulu time format (see also
-<a class="reference external" href="https://www.w3.org/TR/NOTE-datetime">https://www.w3.org/TR/NOTE-datetime</a>)</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – if <code class="docutils literal notranslate"><span class="pre">dtime</span></code> is not a timezone-aware <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code>
-object.</p>
-</dd>
-</dl>
-<p><strong>Examples</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">local_tz</span> <span class="o">=</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s1">&#39;America/New_York&#39;</span><span class="p">)</span>
-<span class="n">local_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">local_tz</span><span class="p">)</span>
-<span class="n">dt_to_zulu_string</span><span class="p">(</span><span class="n">local_time</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="s1">&#39;2024-07-30T11:57:10Z&#39;</span>
-
-<span class="n">dt_to_zulu_string</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>                    <span class="o">--&gt;</span> <span class="ne">ValueError</span>
-<span class="n">dt_to_zulu_string</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span> <span class="o">--&gt;</span> <span class="ne">ValueError</span>  <span class="p">(</span><span class="ow">not</span> <span class="n">timezone</span><span class="o">-</span><span class="n">aware</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="stanford.green.zulutime.is_zulu_string">
-<span class="sig-prename descclassname"><span class="pre">stanford.green.zulutime.</span></span><span class="sig-name descname"><span class="pre">is_zulu_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zulu_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.zulutime.is_zulu_string" title="Link to this definition">¶</a></dt>
-<dd><p>Is <code class="docutils literal notranslate"><span class="pre">zulu_str</span></code> a valid “Zulu” time format string?</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>zulu_str</strong> – a string</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <code class="docutils literal notranslate"><span class="pre">zulu_str</span></code> is a valid Zulu time string, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
-</dd>
-</dl>
-<p><strong>Examples</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">is_zulu_string</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>                          <span class="o">--&gt;</span> <span class="kc">False</span>
-<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;hello&#39;</span><span class="p">)</span>                       <span class="o">--&gt;</span> <span class="kc">False</span>
-<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34Z&#39;</span><span class="p">)</span>        <span class="o">--&gt;</span> <span class="kc">True</span>
-<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34.123456Z&#39;</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="kc">True</span>
-<span class="n">is_zulu_string</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34.Z&#39;</span><span class="p">)</span>       <span class="o">--&gt;</span> <span class="kc">False</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="stanford.green.zulutime.zulu_string_to_utc">
-<span class="sig-prename descclassname"><span class="pre">stanford.green.zulutime.</span></span><span class="sig-name descname"><span class="pre">zulu_string_to_utc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zulu_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">datetime</span></span></span><a class="headerlink" href="#stanford.green.zulutime.zulu_string_to_utc" title="Link to this definition">¶</a></dt>
-<dd><p>Convert zulu_str to a UTC offset aware datetime object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>zulu_str</strong> – a string</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a <code class="docutils literal notranslate"><span class="pre">datetime.datetime</span></code> in the UTC timezone.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – if <code class="docutils literal notranslate"><span class="pre">zulu_str</span></code> is not a valid Zulu time string.</p>
-</dd>
-</dl>
-<p><strong>Examples</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zulu_string_to_utc</span><span class="p">(</span><span class="s1">&#39;2024-07-28T21:42:34Z&#39;</span><span class="p">)</span>  <span class="o">--&gt;</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">07</span><span class="o">-</span><span class="mi">28</span> <span class="mi">21</span><span class="p">:</span><span class="mi">42</span><span class="p">:</span><span class="mi">34</span><span class="o">+</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span>
-<span class="n">zulu_string_to_utc</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>                    <span class="o">--&gt;</span> <span class="ne">ValueError</span>
-<span class="n">zulu_string_to_utc</span><span class="p">(</span><span class="s1">&#39;2024-07-28 T21:42:34Z&#39;</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="ne">ValueError</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 
 
           </div>
           
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">stanford-green</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">stanford.green Modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="modules.html" title="next chapter">stanford.green Modules</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
       </div>
       <div class="clearer"></div>
     </div>
@@ -169,7 +132,7 @@ object.</p>
       &#169;2024, Adam H. Lewenberg.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

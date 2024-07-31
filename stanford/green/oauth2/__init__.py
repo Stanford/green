@@ -1,8 +1,8 @@
 """Library to interact with OAuth2 endpoints.
 
-So far this library only contains the AccessToken class. This class is
-used to get an OAuth2 client access token from an OAuth2 Authorization
-Server.
+   So far this library only contains the AccessToken class. This class is
+   used to get an OAuth2 client access token from an OAuth2 Authorization
+   Server.
 
 """
 import base64
@@ -21,6 +21,7 @@ from diskcache import Cache   # type: ignore
 
 from exponential_backoff_ca import ExponentialBackoff
 
+from stanford.green          import utc_datetime_secs_from_now
 from stanford.green.zulutime import dt_to_zulu_string, zulu_string_to_utc
 
 ## TYPING
@@ -29,17 +30,14 @@ AccessTokenDict = dict[str, str|int|datetime.datetime]
 ## END OF TYPING
 
 class AccessToken():
-    """An object representing an Oauth token returned by an ACS API get-token endpoint.
+    """An object representing an OAuth access token returned by an OAuth Authorization Server.
 
-    An AccessToken sets properties with these same names but with some differences:
-
-    * token: the token string used to authenticate to an ACS API service.
-
-    * expires_at: a Python timezone-aware datetime object when the token expires.
-
-    * expires_in: the number of seconds from when the AccessToken
-      constructor was called until expires_at.
-
+    :param token: the token string returned by an OAuth Authorization Server.
+    :type token: str
+    
+    :param expires_at: the date and time when the token :py:attr:`token` expires.
+    :type expires_at: datetime.datetime
+    
     """
     def __init__(self, token: str, expires_at: datetime.datetime):
         if (token is None):
@@ -52,18 +50,16 @@ class AccessToken():
 
         self.token = token
 
-        # Check that expires_at is _not_ offset NAIVE:
+        # Check that expires_at is _not_ datetime offset NAIVE:
         if (expires_at.tzinfo is None):
             msg = "expires_at must be offset aware"
             raise ValueError(msg)
 
         self.expires_at = expires_at  # datetime when token expires
 
-        # self.expires_in is calculated and set by the preceding
-        # expires_at setter call. See the expires_at() setter below for
-        # details.
-
     def __str__(self) -> str:
+        """Return a string version of AccessToken object.
+        """
         zulu_time_string = self.zulu_time_string()
 
         local_tz         = pytz.timezone('US/Pacific')
@@ -73,38 +69,32 @@ class AccessToken():
         fields.append(f"token: {self.token}")
         fields.append(f"expires_at (UTC): {zulu_time_string}")
         fields.append(f"expires_at (local): {local_expires_at}")
-        fields.append(f"expires_in (secs): {round(self.expires_in, 1)}")
+        fields.append(f"expires_in (secs): {round(self.expires_in(), 1)}")
 
         return f"<{', '.join(fields)}>"
 
-    @property
-    def expires_in(self) -> int:
-        """Return the expires_in number of seconds returned by the token API call."""
-        return self._expires_in
-
-    @expires_in.setter
-    def expires_in(self, value: int) -> None:
-        """Set expires_in property (also updates expires)."""
-        self._expires_in = value
+    ## Getters and setters
 
     @property
     def expires_at(self) -> datetime.datetime:
-        """Return the _expires_at property (datetime.datetime object when token expires)"""
+        """Return the ``_expires_at`` property (datetime.datetime object when token expires)"""
         return self._expires_at
 
     @expires_at.setter
     def expires_at(self, value: datetime.datetime) -> None:
+        """Sets the ``expires_at`` property."""
         self._expires_at = value
 
-        # Calculate expires_in from expires_at.
-        current_utc_time = datetime.datetime.now(datetime.timezone.utc)
-        self.expires_in = int((value - current_utc_time).total_seconds())
+    ## End of getters and setters
 
     def zulu_time_string(self) -> str:
-        """Return the _expires_at as a Zulu time string"""
+        """Return the ``_expires_at`` as a Zulu time string"""
         return dt_to_zulu_string(self.expires_at)
 
     ### PICKLE CUSTOMIZATION ###
+    """
+    We use this custom pickle to cache an AccessToken.
+    """
     def __getstate__(self) -> AccessTokenDict:
         values: AccessTokenDict = {}
         values['token']      = self.token
@@ -117,8 +107,25 @@ class AccessToken():
         self.expires_at = cast(datetime.datetime, values['expires_at'])
     ### END OF PICKLE CUSTOMIZATION ###
 
+
+    def expires_in(self) -> int:
+        """The number of seconds until access token expires.
+
+        :return: the number of seconds until access token expires
+        :rtype: int
+        
+        Note: if the token has expired this value will be negative.
+        """
+        current_utc_time = datetime.datetime.now(datetime.timezone.utc)
+        expires_in_secs = int((self.expires_at - current_utc_time).total_seconds())
+
+        return expires_in_secs 
+
     def is_expired(self) -> bool:
         """Is the token expired?
+
+        :return: ``True`` if the token has expired, ``False`` otherwise.
+        :rtype: bool
         """
         if (self.expires_at is None):
             return True
@@ -131,15 +138,45 @@ class AccessToken():
 class ApiAccessTokenEndpoint():
     """Represents an API endpoint returning an access token.
 
-    endpoint_type: the type of API Access endpoint. Only two types of endpoints are
-    currently recognized:
-        "acs_api": a Stanford ACS API endpoint
-        "oauth2":  a generic OAUth2 Authorization token endpoint
+    :param endpoint_type: the type of API Access endpoint. Two types of endpoints are
+      currently recognized:
 
-    timeout: the maximum time to wait for each request attempt.
+        * ``acs_api``: a Stanford ACS-style API endpoint
 
-    url: The full path to the token endpoint, e.g., https://api-dev.example.com/api/v1/token
+        * ``oauth2``:  a generic OAUth2 Authorization token endpoint
 
+    :type endpoint_type: str
+
+    :param url: the URL pointing to the OAuth Server's access token endpoint. This is where
+      we go to get the access token.
+    :type url: str
+
+    :param client_id: the OAuth client's identifier
+    :type client_id: str
+    
+    :param client_secret: the OAuth client's secret (i.e., password)
+    :type client_secret: str
+
+    :param exp_backoff: an ``ExponentialBackoff`` object used for retrying access token retrieval.
+    :type exp_backoff: ExponentialBackoff
+    
+    :param timeout: the maximum time in seconds to wait for each request attempt; default: 15.0.
+    :type timeout: float
+
+    :param use_cache: if set to ``True`` the access token will be cached; default: ``True``.
+    :type use_cache: bool
+    
+    :param verbose: if set to ``True`` progress information will be sent to standard output; default: ``False``.
+    :type verbose: bool
+
+    :param grant_type: (only relevant if endpoint type is "oauth2") the OAuth grant type;
+      default: "client_credentials"
+    :type grant_type: str
+
+    :param scopes: (only relevant if endpoint type is "oauth2") a list of OAuth scopes the
+      client wants access to; default: the empty list
+    :type scopes: list[str]
+    
     """
 
     def __init__(
@@ -154,11 +191,8 @@ class ApiAccessTokenEndpoint():
             verbose:           bool=False,
             # OAuth stuff:
             grant_type:        str='client_credentials',
-            scope:             Optional[str]=None,
+            scopes:            list[str]=[],
     ):
-        """
-        url: the full path to the get-token API endpoint.
-        """
         valid_endpoints = ['acs_api', 'oauth2']
         if (endpoint_type not in valid_endpoints):
             msg = f"unrecognized endpont type: '{endpoint_type}'"
@@ -171,15 +205,13 @@ class ApiAccessTokenEndpoint():
         self.client_secret = client_secret
         self.exp_backoff   = exp_backoff
 
+        self.timeout   = timeout
+        self.use_cache = use_cache
+        self.verbose   = verbose
+        
         # OAuth settings
-        self.scope      = scope
+        self.scopes     = scopes
         self.grant_type = grant_type
-
-        self.timeout       = timeout
-
-        self.use_cache     = use_cache
-
-        self.verbose = verbose
 
         self.base_headers = {'Accept': 'application/json'}
 
@@ -202,13 +234,36 @@ class ApiAccessTokenEndpoint():
             print(f"[progress] {now} {msg}")
 
     def is_acs_api(self) -> bool:
+        """
+        :return: ``True`` if ``self.endpoint_type`` is set to "acs_api", ``False`` otherwise.
+        :rtype: bool
+        """
         return (self.endpoint_type == 'acs_api')
 
     def is_oauth2(self) -> bool:
+        """
+        :return: ``True`` if ``self.endpoint_type`` is set to "oauth2", ``False`` otherwise.
+        :rtype: bool
+        """
         return (self.endpoint_type == 'oauth2')
 
     def cache_set(self, value: AccessToken, expires_in: int) -> None:
-        """Set the cache to value and expire in expires_in seconds."""
+        """Cache the ``AccessToken`` object.
+
+        :param value: the AccessToken to cache.
+        :type value: ``AccessToken``
+
+        :param expires_in: set the expiration to be ``expires_in`` seconds from now.
+        :type expires_in: int
+        
+        We use a file-based Cache which pickles the object before
+        storage.  To support this the AccessToken object has a custom
+        Pickle instance (see ``__setstate__`` and ``__getstate`` in the
+        ``AccessToken`` class in the source code).
+        
+        Note: this method only relevant if ``self.use_cache`` is ``True``.
+
+        """
         self.progress('entering cache_set()')
 
         # We subtract 5 seconds from expires_in to avoid a situation where
@@ -217,16 +272,28 @@ class ApiAccessTokenEndpoint():
         self.cache.set(self.cache_key, value, expire=(expires_in - 5))
 
     def cache_get(self) -> AccessToken:
-        """Get the cached value."""
+        """Get the cached value.
+
+        :return: the cached ``AccessToken`` object.
+        :rtype: ``AccessToken`` 
+
+        """
         self.progress('entering cache_get()')
         return cast(AccessToken, self.cache.get(self.cache_key))
 
     def get_token(self,
                   expires_at_override: Optional[datetime.datetime] = None) -> AccessToken:
-        """Get the token needed to make API calls to the gadmin2 API.
+        """Get access token (uses cache if enabled).
 
-        If the value is cached, uses the cached value, otherwise goes out
-        to the gadmin2 token API and gets a new token.
+        :param expires_at_override: a ``datetime.datetime`` to use instead of
+          the actual expiration time; defaults to ``None``.
+        :type expires_at_override: Optional[datetime.datetime]
+
+        :return: a valid (cached or otherwise) ``AccessToken`` object.
+        :rtype: ``AccessToken`` 
+
+        If the value is cached, uses the cached value, otherwise gets the
+        access token using :py:func:`_get_token`.
 
         There are circumstances (e.g., during unit testing) when we want
         to override the expires_at time that was set by the token API
@@ -249,17 +316,22 @@ class ApiAccessTokenEndpoint():
                     access_token.expires_at = expires_at_override
 
                 # Cache this value.
-                self.cache_set(access_token, expires_in=access_token.expires_in)
+                self.cache_set(access_token, expires_in=access_token.expires_in())
                 return access_token
             else:
                 self.progress("cache HIT")
                 return access_token_cached
 
     def _get_token(self) -> AccessToken:
+        """Get the access token from the token endpoint.
+
+        This is a simple wrapper function that calls the appropriate
+        get-token function depending on the value of ``self.endpoint_type``.
+        """
         if (self.is_acs_api()):
-            return self.get_token_acs_api()
+            return self._get_token_acs_api()
         elif (self.is_oauth2()):
-            return self.get_token_oauth2()
+            return self._get_token_oauth2()
         else:
             msg = "programming error?!?"
             raise RuntimeError(msg)
@@ -327,22 +399,22 @@ class ApiAccessTokenEndpoint():
             self.logger.error(msg)
             raise HTTPError(msg)
 
-    def get_token_acs_api(self) -> AccessToken:
-        """Get the token from the API get-token endpoint (no caching)
+    def _get_token_acs_api(self) -> AccessToken:
+        """Get an access token from an ACS-API compatible token endpoint (no caching)
 
-        The get-token JSON response contains the token itself and two
-        time-related attributes:
+        The JSON response from the ACS API token endpoint contains the
+        token itself and two time-related attributes:
 
-        * expires_at: when the token expires in Zulu (UTC) time.
+        * ``expires_at``: when the token expires in Zulu (UTC) time.
 
-        * expires_in: the number of seconds from when the token was
+        * ``expires_in``: the number of seconds from when the token was
           generated until it expires.
 
-        When creating the AccessToken object we convert the Zulu time
-        expires_at string into a Python timezone-aware datetime object
-        since that is what AccessToken requires.
+        When creating the ``AccessToken`` object we convert the Zulu time
+        ``expires_at`` string into a Python timezone-aware datetime object
+        that AccessToken requires.
 
-        Furthermore, AccessToken calculates expires_in itself so we ignore
+        Furthermore, ``AccessToken`` calculates expires_in itself so we ignore
         the response's expires_in value.
 
         """
@@ -374,11 +446,11 @@ class ApiAccessTokenEndpoint():
             self.logger.error(msg)
             raise KeyError(msg)
 
-    def get_token_oauth2(self) -> AccessToken:
-        """Get the token from an OAuth2 get-token endpoint (no caching)
+    def _get_token_oauth2(self) -> AccessToken:
+        """Get an access token from an OAuth2 endpoint (no caching)
 
-        The get-token JSON response contains the token itself and the
-        expires_in attribute
+        The JSON response contains the token itself and the
+        `expires_in` attribute
 
         * expires_in: the number of seconds from when the token was
           generated until it expires.
@@ -396,9 +468,13 @@ class ApiAccessTokenEndpoint():
         auth_base64 = base64.b64encode(auth_bytes).decode('utf-8')
         headers['Authorization'] = f"Basic {auth_base64}"
 
+        # OAuth Authorization server expects the scopes to be passed
+        # as a space-delimited string.
+        scopes_delimited = ' '.join(self.scopes)
+        
         data = {
             'grant_type': self.grant_type,
-            'scope': self.scope,
+            'scope': scopes_delimited,
         }
 
         response = self._get_token_response(url, headers, data=data)
@@ -415,14 +491,20 @@ class ApiAccessTokenEndpoint():
             self.logger.error(msg)
             raise KeyError(msg)
 
-        token      = data['access_token']
-        expires_in = data['expires_in']
+        token          = data['access_token']
+        expires_in_raw = data['expires_in']
 
-        # Get the current time in the UTC timezone.
-        current_time = datetime.datetime.now(pytz.utc)
+        if (expires_in_raw is None):
+            msg = f"expires_in value missing"
+            raise ValueError(msg)
 
-        # Add expires_in seconds to the current time
-        expires_at = current_time + datetime.timedelta(seconds=60)
+        expires_in = int(expires_in_raw)
+
+        # If data['expires_in'] cannot be converted to an int the
+        # above will raise an error. But that's OK because we need
+        # data['expires_in'] to be a number.
+
+        expires_at = utc_datetime_secs_from_now(expires_in)
 
         if (token is None):
             msg = "token is empty"

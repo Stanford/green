@@ -11,8 +11,7 @@ stanford-green documentation
    :maxdepth: 4
    :caption: Contents:
 
-.. automodule:: stanford.green
-   :members:
+   modules
+	     
+	     
 
-.. automodule:: stanford.green.zulutime
-   :members:

@@ -1,6 +1,6 @@
-sphinx
 mypy
 exponential_backoff_ca
+diskcache
 
 python-dateutil
 types-python-dateutil
@@ -10,5 +10,7 @@ types-pytz
 
 types-requests
 
+sphinx
+sphinx-markdown-builder
 
 
