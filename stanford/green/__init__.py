@@ -3,6 +3,8 @@
 
 # pylint: disable=superfluous-parens,invalid-name
 
+import datetime
+import pytz
 import random
 
 ## TYPING
@@ -82,3 +84,16 @@ def random_uid(prefix: str = "", length: Optional[int] = None) -> str:
         uid += random.choice(LETTERS)
 
     return uid
+
+def utc_datetime_secs_from_now(secs: int) -> datetime.datetime:
+    """Get the datetime.datetime object corresponding to ``secs`` seconds from now.
+
+    :return: a ``datetime.datetime`` object in the UTC timezone corresponding to the
+      current time plus ``secs`` seconds.
+    :rtype: datetime.datetime
+
+    """
+    current_time = datetime.datetime.now(pytz.utc)
+    return current_time + datetime.timedelta(seconds=secs)
+    
+
