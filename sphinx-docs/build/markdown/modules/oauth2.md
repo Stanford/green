@@ -2,6 +2,11 @@
 
 Library to interact with OAuth2 endpoints.
 
+## Overview
+
+The `stanford.green.oauth2` package provides classes to connect to
+an OAuth2 Authorizaton Server and get an access token.
+
 So far this library only contains the AccessToken class. This class is
 used to get an OAuth2 client access token from an OAuth2 Authorization
 Server.
@@ -42,7 +47,7 @@ Is the token expired?
 
 Return the `_expires_at` as a Zulu time string
 
-### *class* stanford.green.oauth2.ApiAccessTokenEndpoint(endpoint_type: str, url: str, client_id: str, client_secret: str, exp_backoff: ExponentialBackoff, timeout: float = 15.0, use_cache: bool = True, verbose: bool = False, grant_type: str = 'client_credentials', scope: str | None = None)
+### *class* stanford.green.oauth2.ApiAccessTokenEndpoint(endpoint_type: str, url: str, client_id: str, client_secret: str, exp_backoff: ExponentialBackoff, timeout: float = 15.0, use_cache: bool = True, verbose: bool = False, grant_type: str = 'client_credentials', scopes: list[str] = [])
 
 Represents an API endpoint returning an access token.
 
@@ -70,6 +75,37 @@ Represents an API endpoint returning an access token.
 
 Get the access token from the token endpoint.
 
+This is a simple wrapper function that calls the appropriate
+get-token function depending on the value of `self.endpoint_type`.
+
+#### \_get_token_acs_api()
+
+Get an access token from an ACS-API compatible token endpoint (no caching)
+
+The JSON response from the ACS API token endpoint contains the
+token itself and two time-related attributes:
+
+* `expires_at`: when the token expires in Zulu (UTC) time.
+* `expires_in`: the number of seconds from when the token was
+  generated until it expires.
+
+When creating the `AccessToken` object we convert the Zulu time
+`expires_at` string into a Python timezone-aware datetime object
+that AccessToken requires.
+
+Furthermore, `AccessToken` calculates expires_in itself so we ignore
+the response’s expires_in value.
+
+#### \_get_token_oauth2()
+
+Get an access token from an OAuth2 endpoint (no caching)
+
+The JSON response contains the token itself and the
+expires_in attribute
+
+* expires_in: the number of seconds from when the token was
+  generated until it expires.
+
 #### cache_get()
 
 Get the cached value.
@@ -96,7 +132,7 @@ Note: this method only relevant if `self.use_cache` is `True`.
 
 #### get_token(expires_at_override: datetime | None = None)
 
-Get access token using the cache if enabled.
+Get access token (uses cache if enabled).
 
 * **Parameters:**
   **expires_at_override** (*Optional* *[**datetime.datetime* *]*) – a `datetime.datetime` to use instead of
@@ -113,34 +149,6 @@ There are circumstances (e.g., during unit testing) when we want
 to override the expires_at time that was set by the token API
 call. For those circumstances use the expires_in_override
 parameter.
-
-#### get_token_acs_api()
-
-Get the token from the API get-token endpoint (no caching)
-
-The get-token JSON response contains the token itself and two
-time-related attributes:
-
-* expires_at: when the token expires in Zulu (UTC) time.
-* expires_in: the number of seconds from when the token was
-  generated until it expires.
-
-When creating the AccessToken object we convert the Zulu time
-expires_at string into a Python timezone-aware datetime object
-since that is what AccessToken requires.
-
-Furthermore, AccessToken calculates expires_in itself so we ignore
-the response’s expires_in value.
-
-#### get_token_oauth2()
-
-Get the token from an OAuth2 get-token endpoint (no caching)
-
-The get-token JSON response contains the token itself and the
-expires_in attribute
-
-* expires_in: the number of seconds from when the token was
-  generated until it expires.
 
 #### is_acs_api()
 

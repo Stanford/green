@@ -1,8 +1,85 @@
 """Library to interact with OAuth2 endpoints.
 
-   So far this library only contains the AccessToken class. This class is
-   used to get an OAuth2 client access token from an OAuth2 Authorization
-   Server.
+--------
+Overview
+--------
+
+The ``stanford.green.oauth2`` package provides classes to connect to
+an OAuth2 Authorizaton Server and get an access token. The classes
+support retries via the ``exponential_backoff_ca`` package. Once you
+have the access token it is up to you to use it to make API calls.
+
+There is built-in file-based caching to minimize the number of times
+you have to go out to the access token endpoint.
+
+--------
+Examples
+--------
+
+To connect to an OAuth2 Authorization Server and get an access token::
+
+  from exponential_backoff_ca import ExponentialBackoff
+  from stanford.green.oauth2  import AccessToken, ApiAccessTokenEndpoint
+
+  # The URL to get the token (provided by OAuth2 Authorization Service):
+  url = "https://api.endpoint.com/api/v1/token"
+
+  # The ApiAccessTokenEndpoint object requires an exponential backoff object to
+  # do the retries:
+  time_slot_secs = 3.0  # The number of seconds in each time slot.
+  num_iterations = 4    # The number of iterations.
+  limit_value    = 10.0 # Don't wait any longer than this number of seconds.
+  exp_backoff    = ExponentialBackoff(time_slot_secs, num_iterations,
+                                      limit_value=limit_value, debug=True)
+
+  # Define the ApiAccessTokenEndpoint object. The 'oauth2' tells the
+  # ApiAccessTokenEndpoint class that this is an OAuth2 access token
+  # endpoint.
+  client_id     = 'username'
+  client_secret = 'password'
+  api_access    = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
+                                          exp_backoff, scopes=['read', 'list'],
+                                          verbose=True)
+
+  # If you want to cache the token, set the "use_cache" flag to True:
+  # api_access = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
+  #                                     exp_backoff,  scopes=['read', 'list'],
+  #                                     verbose=True, use_cache=True)
+
+  # Get the token.
+  access_token = api_access.get_token()
+
+  # This token can now be used with the API to do other operations.
+
+To connect to an ACS-style API endpoint you use much the same code as above::
+
+  from exponential_backoff_ca import ExponentialBackoff
+  from stanford.green.oauth2  import AccessToken, ApiAccessTokenEndpoint
+
+  # The URL to get the token (provided by OAuth2 Authorization Service):
+  url = "https://api.endpoint.com/api/v1/token"
+
+  # The ApiAccessTokenEndpoint object requires an exponential backoff object to
+  # do the retries:
+  time_slot_secs = 3.0  # The number of seconds in each time slot.
+  num_iterations = 4    # The number of iterations.
+  limit_value    = 10.0 # Don't wait any longer than this number of seconds.
+  exp_backoff    = ExponentialBackoff(time_slot_secs, num_iterations,
+                                      limit_value=limit_value, debug=True)
+
+  # Define the ApiAccessTokenEndpoint object. The 'acs_api' tells the
+  # ApiAccessTokenEndpoint class that this is ACS API-style endpoint.
+  # Note that this kind of API access endpoint does not supply the
+  # scopes parameter.
+  client_id     = 'username'
+  client_secret = 'password'
+  api_access    = ApiAccessTokenEndpoint('acs_api', url, client_id, client_secret,
+                                          exp_backoff, verbose=True)
+
+  # Get the token.
+  access_token = api_access.get_token()
+
+  # This token can now be used with the API to do other operations.
 
 """
 import base64
@@ -34,10 +111,10 @@ class AccessToken():
 
     :param token: the token string returned by an OAuth Authorization Server.
     :type token: str
-    
+
     :param expires_at: the date and time when the token :py:attr:`token` expires.
     :type expires_at: datetime.datetime
-    
+
     """
     def __init__(self, token: str, expires_at: datetime.datetime):
         if (token is None):
@@ -77,18 +154,17 @@ class AccessToken():
 
     @property
     def expires_at(self) -> datetime.datetime:
-        """Return the ``_expires_at`` property (datetime.datetime object when token expires)"""
+        """Return the ``expires_at`` property (datetime.datetime object when token expires)"""
         return self._expires_at
 
     @expires_at.setter
     def expires_at(self, value: datetime.datetime) -> None:
         """Sets the ``expires_at`` property."""
         self._expires_at = value
-
     ## End of getters and setters
 
     def zulu_time_string(self) -> str:
-        """Return the ``_expires_at`` as a Zulu time string"""
+        """Return the ``_expires_at`` property as a Zulu time string"""
         return dt_to_zulu_string(self.expires_at)
 
     ### PICKLE CUSTOMIZATION ###
@@ -113,16 +189,16 @@ class AccessToken():
 
         :return: the number of seconds until access token expires
         :rtype: int
-        
+
         Note: if the token has expired this value will be negative.
         """
         current_utc_time = datetime.datetime.now(datetime.timezone.utc)
         expires_in_secs = int((self.expires_at - current_utc_time).total_seconds())
 
-        return expires_in_secs 
+        return expires_in_secs
 
     def is_expired(self) -> bool:
-        """Is the token expired?
+        """Has the token expired?
 
         :return: ``True`` if the token has expired, ``False`` otherwise.
         :rtype: bool
@@ -153,19 +229,19 @@ class ApiAccessTokenEndpoint():
 
     :param client_id: the OAuth client's identifier
     :type client_id: str
-    
+
     :param client_secret: the OAuth client's secret (i.e., password)
     :type client_secret: str
 
     :param exp_backoff: an ``ExponentialBackoff`` object used for retrying access token retrieval.
     :type exp_backoff: ExponentialBackoff
-    
+
     :param timeout: the maximum time in seconds to wait for each request attempt; default: 15.0.
     :type timeout: float
 
     :param use_cache: if set to ``True`` the access token will be cached; default: ``True``.
     :type use_cache: bool
-    
+
     :param verbose: if set to ``True`` progress information will be sent to standard output; default: ``False``.
     :type verbose: bool
 
@@ -176,7 +252,7 @@ class ApiAccessTokenEndpoint():
     :param scopes: (only relevant if endpoint type is "oauth2") a list of OAuth scopes the
       client wants access to; default: the empty list
     :type scopes: list[str]
-    
+
     """
 
     def __init__(
@@ -208,7 +284,7 @@ class ApiAccessTokenEndpoint():
         self.timeout   = timeout
         self.use_cache = use_cache
         self.verbose   = verbose
-        
+
         # OAuth settings
         self.scopes     = scopes
         self.grant_type = grant_type
@@ -255,12 +331,12 @@ class ApiAccessTokenEndpoint():
 
         :param expires_in: set the expiration to be ``expires_in`` seconds from now.
         :type expires_in: int
-        
+
         We use a file-based Cache which pickles the object before
         storage.  To support this the AccessToken object has a custom
         Pickle instance (see ``__setstate__`` and ``__getstate`` in the
         ``AccessToken`` class in the source code).
-        
+
         Note: this method only relevant if ``self.use_cache`` is ``True``.
 
         """
@@ -275,7 +351,7 @@ class ApiAccessTokenEndpoint():
         """Get the cached value.
 
         :return: the cached ``AccessToken`` object.
-        :rtype: ``AccessToken`` 
+        :rtype: ``AccessToken``
 
         """
         self.progress('entering cache_get()')
@@ -290,7 +366,7 @@ class ApiAccessTokenEndpoint():
         :type expires_at_override: Optional[datetime.datetime]
 
         :return: a valid (cached or otherwise) ``AccessToken`` object.
-        :rtype: ``AccessToken`` 
+        :rtype: ``AccessToken``
 
         If the value is cached, uses the cached value, otherwise gets the
         access token using :py:func:`_get_token`.
@@ -471,7 +547,7 @@ class ApiAccessTokenEndpoint():
         # OAuth Authorization server expects the scopes to be passed
         # as a space-delimited string.
         scopes_delimited = ' '.join(self.scopes)
-        
+
         data = {
             'grant_type': self.grant_type,
             'scope': scopes_delimited,
@@ -513,4 +589,3 @@ class ApiAccessTokenEndpoint():
             access_token = AccessToken(token, expires_at)
 
         return access_token
-
