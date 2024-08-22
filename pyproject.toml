@@ -11,10 +11,17 @@ include = ["stanford*"]
 
 [project]
 name = "stanford_green"
-version = "0.3.0"
+version = "0.3.1"
 authors = [
   { name="Adam H. Lewenberg", email="adamhl@stanford.edu" },
 ]
 description = "Useful Python utilities for the Stanford community"
 readme = "README.md"
 requires-python = ">=3.10"
+
+dependencies = [
+  "diskcache",
+  "exponential_backoff_ca",
+  "filelock",
+  "pytz",
+]
