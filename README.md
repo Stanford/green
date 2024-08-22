@@ -12,6 +12,8 @@ stanford.green.zulutime
   - zulu_string_to_utc
   - dt_to_zulu_string
 
+stanford.green.kerberos
+  - KerberosTicket class
 
 ## stanford.green.oauth2
 
@@ -47,3 +49,23 @@ access_token = api_access.get_token()
 
 The exponential backoff object is used for retrying token access provisioning in
 case of initial failures.
+
+## stanford.green.kerberos
+
+A convenient class to manage and provision Kerberos tickets.
+
+Example:
+```
+from stanford.green.kerberos import KerberosTicket
+
+keytab_path = "/etc/krb5.keytab"
+principal   = "host/myserver.example.com"
+ticket_file = "/tmp/krb5cc_my_ticket"
+
+kt = KerberosTicket(keytab_path, principal, ticket_file, age_limit_seconds=30)
+kt.create_ticket_file()
+
+# You now have a valid Kerberos context with the Kerberos ticket
+# file pointed to by the KRB5CCNAME environment variable.
+```
+
