@@ -299,8 +299,7 @@ class ApiAccessTokenEndpoint():
             self.cache_key = 'access_token_' + m.hexdigest()
             self.cache     = Cache()  # Cache the access token
 
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.INFO)
+        self.logger = logging.getLogger(__name__)
 
     def progress(self, msg: str) -> None:
         """Show a progress message"""
