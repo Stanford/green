@@ -11,6 +11,11 @@ from stanford.green.zulutime import is_zulu_string
 from stanford.green.zulutime import zulu_string_to_utc
 from stanford.green.zulutime import dt_to_zulu_string
 
+from stanford.green.ldap import account_attribute_is_single_valued
+from stanford.green.ldap import account_attribute_is_multi_valued
+from stanford.green.ldap import people_attribute_is_single_valued
+from stanford.green.ldap import people_attribute_is_multi_valued
+
 class TestGreen(unittest.TestCase):
 
     # INVALID Zulu strings
@@ -109,6 +114,178 @@ class TestGreen(unittest.TestCase):
         local_time = datetime.datetime.now(local_tz)
         self.assertTrue(is_zulu_string(dt_to_zulu_string(local_time)))
         print(dt_to_zulu_string(local_time))
+
+
+    def test_ldap_attributes(self):
+        ## ACCOUNTS TREE
+        single_valued_account_attributes = [
+            'suAfsHomeDirectory',
+            'suEmailStatus',
+            'dn',
+            'uid',
+            'suLelandStatus',
+            'suCreateAgent',
+            'suPtsStatus',
+            'suAfsHomeDirectory',
+            'suDialinStatus',
+            'suEmailQuota',
+            'suSeasLocal',
+            'suAfsStatus',
+            'suAccountStatus',
+            'suCreateAPI',
+            'suEmailStatus',
+            'suSeasUriRouteTo',
+            'suEntryStatus',
+            'uidNumber',
+            'krb5PrincipalName',
+            'loginShell',
+            'homeDirectory',
+            'suSeasStatus',
+            'suPtsUid',
+            'suKerberosStatus',
+            'owner',
+            'gidNumber',
+            'seeAlso',
+            'suEmailAccountType',
+            'suSeasSunetIDPreferred',
+            'suSeasEmailSystem',
+            'suEmailSMTPEnabled',
+            'suNameLF',
+            'suName',
+            'cn',
+            'gecos',
+            'suKerberosPasswordExpiration',
+        ]
+
+        multi_valued_account_attributes = [
+            'suPrivilegeGroup',
+            'suSeasSunetID',
+            'suMailDrop',
+        ]
+
+        for attribute in single_valued_account_attributes:
+            self.assertTrue(account_attribute_is_single_valued(attribute), f"{attribute} is single-valued")
+            self.assertFalse(account_attribute_is_multi_valued(attribute), f"{attribute} is not multi-valued")
+
+        for attribute in multi_valued_account_attributes:
+            self.assertFalse(account_attribute_is_single_valued(attribute))
+            self.assertTrue(account_attribute_is_multi_valued(attribute))
+
+        ## PEOPLE TREE
+        single_valued_people_attributes = [
+            'dn',
+            'suMailCode',
+            'suGwAffilCode1',
+            'suVisibHomePhone',
+            'suRegID',
+            'o',
+            'suRegisteredName',
+            'suRegisteredNameLF',
+            'suUnivID',
+            'uid',
+            'suVisibAffiliation1',
+            'suVisibMailCode',
+            'suVisibAffilAddress1',
+            'suVisibStreet',
+            'suVisibAffilPhone1',
+            'suGALsuRegID',
+            'suGALuid',
+            'suDisplayNameLast',
+            'suGALsuDisplayNameLast',
+            'suUniqueIdentifier',
+            'suGALsuUniqueIdentifier',
+            'homePhone',
+            'homePostalAddress',
+            'suVisibEmail',
+            'mobile',
+            'suVisibMobilePhone',
+            'suGALmobile',
+            'suMailAddress',
+            'suPermanentAddress',
+            'suPermanentPhone',
+            'suVisibSunetID',
+            'suVisibTelephoneNumber',
+            'suVisibPermanentPhone',
+            'suVisibHomeAddress',
+            'suVisibPermanentAddress',
+            'suVisibMailAddress',
+            'suSunetIDPreferred',
+            'suVisibIdentity',
+            'suDisplayNameFirst',
+            'suGALsuDisplayNameFirst',
+            'suProxyCardNumber',
+            'suCardNumber',
+            'street',
+            'postalAddress',
+            'suGwAffilAddress1',
+            'title',
+            'eduPersonOrgDN',
+            'eduPersonPrincipalName',
+            'eduPersonScopedAffiliation',
+            'eduPersonPrimaryAffiliation',
+            'eduPersonAffiliation',
+            'eduPersonUniqueId',
+            'eduPersonPrimaryOrgUnitDN',
+            'ou',
+            'suPrimaryOrganizationName',
+            'description',
+            'suPrimaryOrganizationID',
+            'eduPersonOrgUnitDN',
+            'suGwAffiliation1',
+            'suGwAffilDate1',
+            'suMobileID',
+            'mail',
+            'suGALmail',
+            'suDisplayNameMiddle',
+            'displayName',
+            'suDisplayNameLF',
+            'suGALsuDisplayNameMiddle',
+            'suGALdisplayName',
+            'suGALsuDisplayNameLF',
+        ]
+
+        multi_valued_people_attributes = [
+            'suSN',
+            'suGwAffilCode',
+            'suDisplayAffiliation',
+            'suAffiliation',
+            'suAffilStandardHours',
+            'suGwAffilPhone1',
+            'suGwAffilPhone2',
+            'suGwAffilPhone3',
+            'suGwAffilPhone4',
+            'suGwAffilPhone5',
+            'suGALsuSearchID',
+            'suGALsuSunetID',
+            'telephoneNumber',
+            'suGALtelephoneNumber',
+            'sn',
+            'suGALsn',
+            'givenName',
+            'suGivenName',
+            'suGALgivenName',
+            'suGALcn',
+            'suPrivilegeGroup',
+            'suGwAffiliation',
+            'suOU',
+            'suAffilJobCode',
+            'suAffilJobDescription',
+            'suCN',
+            'cn',
+            'suGeneralID',
+            'suSearchID',
+            'suSunetID',
+        ]
+
+        for attribute in single_valued_people_attributes:
+            self.assertTrue(people_attribute_is_single_valued(attribute), f"{attribute} is single-valued")
+            self.assertFalse(people_attribute_is_multi_valued(attribute), f"{attribute} is not multi-valued")
+
+        for attribute in multi_valued_people_attributes:
+            self.assertFalse(people_attribute_is_single_valued(attribute))
+            self.assertTrue(people_attribute_is_multi_valued(attribute))
+
+
 
 if __name__ == '__main__':
     unittest.main()
