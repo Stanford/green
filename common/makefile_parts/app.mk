@@ -3,7 +3,8 @@ docs: ## Generate Sphinx docs
 	@source ${BUILD_DIR}/venv/bin/activate \
 	&& cd ../sphinx-docs/ \
 	&& make html \
-	&& cd .. && sphinx-build -M markdown ./sphinx-docs/source/ ./sphinx-docs/build/
+	&& cd .. && sphinx-build ./sphinx-docs/source/ ./sphinx-docs/build/ \
+	&& cp -pr sphinx-docs/build/html/* docs/
 
 .PHONY: tests
 tests: ## Run unit tests

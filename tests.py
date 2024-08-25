@@ -15,6 +15,7 @@ from stanford.green.ldap import account_attribute_is_single_valued
 from stanford.green.ldap import account_attribute_is_multi_valued
 from stanford.green.ldap import people_attribute_is_single_valued
 from stanford.green.ldap import people_attribute_is_multi_valued
+from stanford.green.ldap import LDAP
 
 class TestGreen(unittest.TestCase):
 
@@ -286,6 +287,11 @@ class TestGreen(unittest.TestCase):
             self.assertTrue(people_attribute_is_multi_valued(attribute))
 
 
+        # Do a search
+        ldap1 = LDAP()
+        basedn = "uid=adamhl,cn=accounts,dc=stanford,dc=edu"
+        results = ldap1.dn_search(basedn)
+        print(results)
 
 if __name__ == '__main__':
     unittest.main()
