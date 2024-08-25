@@ -2,6 +2,8 @@ mypy
 exponential_backoff_ca
 diskcache
 
+python-ldap
+
 python-dateutil
 types-python-dateutil
 

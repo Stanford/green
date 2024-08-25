@@ -1,7 +1,24 @@
+"""Useful LDAP functions.
 
+"""
+import logging
+import ldap      # type: ignore
+import ldap.sasl # type: ignore
+
+## TYPING
+from typing import Optional
+## END OF TYPING
+
+## Set up logging
+logger = logging.getLogger(__name__)
 
 class GreenUnknownLDAPAttribute(Exception):
     pass
+
+class GreenLDAPNoResultsException(Exception):
+    """Use when no results are returned"""
+    pass
+
 
 """
 
@@ -309,6 +326,9 @@ PEOPLE_ATTRIBUTE_TO_MULTIPLICITY_EXTRA = {
 PEOPLE_ATTRIBUTE_TO_MULTIPLICITY |= SUGAL_ATTRIBUTE_TO_MULTIPLICITY
 PEOPLE_ATTRIBUTE_TO_MULTIPLICITY |= PEOPLE_ATTRIBUTE_TO_MULTIPLICITY_EXTRA
 
+# Put them together.
+ATTRIBUTE_TO_MULTIPLICITY = ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY | PEOPLE_ATTRIBUTE_TO_MULTIPLICITY
+
 def account_attribute_is_single_valued(attribute_name: str) -> bool:
     if (attribute_name in ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY):
         return (ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
@@ -328,3 +348,160 @@ def people_attribute_is_single_valued(attribute_name: str) -> bool:
 
 def people_attribute_is_multi_valued(attribute_name: str) -> bool:
     return not people_attribute_is_single_valued(attribute_name)
+
+def attribute_is_single_valued(attribute_name: str) -> bool:
+    if (attribute_name in ATTRIBUTE_TO_MULTIPLICITY):
+        return (ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
+    else:
+        msg = f"'{attribute_name}' is not a recognized attribute"
+        raise GreenUnknownLDAPAttribute(msg)
+
+def attribute_is_multi_valued(attribute_name: str) -> bool:
+    return not attribute_is_single_valued(attribute_name)
+
+
+class LDAP():
+
+    def __init__(self,
+                 host: str = 'ldap.stanford.edu',
+                 connect_on_init: bool = True):
+        self.host = host
+
+        if (connect_on_init):
+            self.ldap = self.connect()
+
+    def connect(self):
+        """Create a connected ldap object.
+
+        Currently, the only connection method is using GSSAPI. That is, there
+        must be a valid Kerberos context.
+        """
+        ldap_conn = ldap.initialize(
+            f"ldap://{self.host}"
+        )
+        ldap_conn.sasl_non_interactive_bind_s('GSSAPI')
+        logger.debug(f"making LDAP SASL bind to {self.host}")
+
+        return ldap_conn
+
+    def scope_normalize(self, scope: str):
+        scopes = {
+            'sub':  ldap.SCOPE_SUBTREE,
+            'base': ldap.SCOPE_BASE,
+            'one':  ldap.SCOPE_ONELEVEL,
+        }
+
+        # Add some aliases
+        scopes['subtree']  = scopes['sub']
+        scopes['onelevel'] = scopes['one']
+
+        return scopes[scope]
+
+    def dn_search(
+            self,
+            basedn:    str,
+            filterstr: str='(objectClass=*)',
+            attrlist:  Optional[list[str]]=None,
+            scope:     str='sub'
+    ) -> dict[str, str]:
+        """Get LDAP information for a dn.
+
+        If more than one result returns this will raise an Exception.
+
+        If no account with that sunetid exists raises the
+        LDAPNoResultsException exception. If an account _does_ exist, returns
+        a dict of this form:
+
+            {
+              'uid': uid,
+              'suKerberosStatus': status,
+              'owner': owner id,
+            }
+
+        Example:
+
+            {
+              'uid': 'adamhl',
+              'suKerberosStatus': 'active',
+              'owner': 'suRegID=111823c0c3fe409e9fbde77fee52b100,cn=people,dc=stanford,dc=edu',
+            }
+
+        """
+        search_scope  = self.scope_normalize(scope)
+
+        logger.debug(f"basedn:         {basedn}")
+        logger.debug(f"search scope:   {search_scope}")
+        logger.debug(f"search filter:  {filterstr}")
+        logger.debug(f"attribute list: {attrlist}")
+
+        ldap_result_id = self.ldap.search(
+            basedn,
+            search_scope,
+            filterstr=filterstr,
+            attrlist=attrlist
+        )
+
+        logger.debug(f"ldap_result_id is {ldap_result_id}")
+
+        result_set = []
+        try:
+            result_type, result_data = self.ldap.result(ldap_result_id, 0)
+        except ldap.NO_SUCH_OBJECT as _:
+            # No dn found, so nothing to add.
+            logger.error("no such object")
+            pass
+        else:
+            if result_type == ldap.RES_SEARCH_ENTRY:
+                result_set.append(result_data)
+            else:
+                pass
+
+        logger.debug(f"result_set: {result_set}")
+
+        # Parse results
+        # Results should look something like this:
+        #   [
+        #     [
+        #       ('uid=adamhl,cn=accounts,dc=stanford,dc=edu', {'uid': [b'adamhl'], 'suLelandStatus': [b'active'], 'suPtsStatus': [b'active'], 'suSeasLocal': [b'adamhl@o365.stanford.edu'], 'suAfsStatus': [b'active'], 'suAccountStatus': [b'active'], 'suEmailStatus': [b'active'], 'suEntryStatus': [b'active'], 'suSeasStatus': [b'active'], 'suKerberosStatus': [b'active'], 'owner': [b'suRegID=111823c0c3fe409e9fbde77fee52b100,cn=people,dc=stanford,dc=edu']})
+        #     ]
+        #   ]
+
+        if (len(result_set) == 0):
+            msg = "no LDAP results"
+            raise GreenLDAPNoResultsException(msg)
+
+        # Get first
+        results = result_set[0]
+
+        if (len(results) == 0):
+            msg = "no LDAP results"
+            raise GreenLDAPNoResultsException(msg)
+
+        result = results[0]
+        logger.debug(f"result: {result}")
+
+        dn     = result[0]
+        values = result[1]
+        logger.debug(f"dn is {dn}")
+        logger.debug(f"values are {values}")
+
+        return_values = {}
+        for attribute in values.keys():
+            # Skip objectClass
+            if (attribute == 'objectClass'):
+                continue
+
+            if (attribute_is_single_valued(attribute)):
+                single_value = values[attribute][0].decode("utf-8")
+                return_values[attribute] = single_value
+                logger.debug(f"{attribute}: {single_value}")
+            else:
+                multi_values = values[attribute]
+                multi_values_decoded = []
+                for multi_value in multi_values:
+                    multi_values_decoded.append(multi_value.decode("utf-8"))
+
+                return_values[attribute] = multi_values_decoded
+                logger.debug(f"{attribute}: {multi_values_decoded}")
+
+        return return_values
