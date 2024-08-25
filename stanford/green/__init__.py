@@ -30,7 +30,7 @@ def random_uid(prefix: str = "", length: Optional[int] = None) -> str:
       will be eight.
     :raises Exception: if ``prefix`` is eight or more characters there
       is not enough space to put the rest of the randomly generated
-      characters and in this case an Excption will be raised.
+      characters and in this case an Exception will be raised.
 
     **Algorithm**
 
