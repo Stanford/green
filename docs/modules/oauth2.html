@@ -15,7 +15,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="stanford.green.zulutime" href="zulutime.html" />
-    <link rel="prev" title="stanford.green" href="base.html" />
+    <link rel="prev" title="stanford.green.ldap" href="ldap.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -39,8 +39,10 @@
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">stanford.green.oauth2</span></code> package provides classes to connect to
-an OAuth2 Authorizaton Server and get an access token. The classes
-support retries via the <code class="docutils literal notranslate"><span class="pre">exponential_backoff_ca</span></code> package. Once you
+an OAuth2 Authorization Server and get an access token. These classes
+support retries via the
+<a class="reference external" href="https://github.com/macrotex/python-exponential-backoff-ca">exponential_backoff_ca Python package</a>.
+Once you
 have the access token it is up to you to use it to make API calls.</p>
 <p>There is built-in file-based caching to minimize the number of times
 you have to go out to the access token endpoint.</p>
@@ -54,8 +56,8 @@ you have to go out to the access token endpoint.</p>
 <span class="c1"># The URL to get the token (provided by OAuth2 Authorization Service):</span>
 <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.endpoint.com/api/v1/token&quot;</span>
 
-<span class="c1"># The ApiAccessTokenEndpoint object requires an exponential backoff object to</span>
-<span class="c1"># do the retries:</span>
+<span class="c1"># The ApiAccessTokenEndpoint object requires an exponential backoff</span>
+<span class="c1"># object to do the retries:</span>
 <span class="n">time_slot_secs</span> <span class="o">=</span> <span class="mf">3.0</span>  <span class="c1"># The number of seconds in each time slot.</span>
 <span class="n">num_iterations</span> <span class="o">=</span> <span class="mi">4</span>    <span class="c1"># The number of iterations.</span>
 <span class="n">limit_value</span>    <span class="o">=</span> <span class="mf">10.0</span> <span class="c1"># Don&#39;t wait any longer than this number of seconds.</span>
@@ -89,8 +91,8 @@ you have to go out to the access token endpoint.</p>
 <span class="c1"># The URL to get the token (provided by OAuth2 Authorization Service):</span>
 <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.endpoint.com/api/v1/token&quot;</span>
 
-<span class="c1"># The ApiAccessTokenEndpoint object requires an exponential backoff object to</span>
-<span class="c1"># do the retries:</span>
+<span class="c1"># The ApiAccessTokenEndpoint object requires an exponential backoff</span>
+<span class="c1"># object to do the retries:</span>
 <span class="n">time_slot_secs</span> <span class="o">=</span> <span class="mf">3.0</span>  <span class="c1"># The number of seconds in each time slot.</span>
 <span class="n">num_iterations</span> <span class="o">=</span> <span class="mi">4</span>    <span class="c1"># The number of iterations.</span>
 <span class="n">limit_value</span>    <span class="o">=</span> <span class="mf">10.0</span> <span class="c1"># Don&#39;t wait any longer than this number of seconds.</span>
@@ -180,7 +182,7 @@ currently recognized:</p>
 <blockquote>
 <div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">acs_api</span></code>: a Stanford ACS-style API endpoint</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">oauth2</span></code>:  a generic OAUth2 Authorization token endpoint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">oauth2</span></code>:  a generic OAuth2 Authorization token endpoint</p></li>
 </ul>
 </div></blockquote>
 </p></li>
@@ -290,7 +292,7 @@ the actual expiration time; defaults to <code class="docutils literal notranslat
 access token using <a class="reference internal" href="#stanford.green.oauth2.ApiAccessTokenEndpoint._get_token" title="stanford.green.oauth2.ApiAccessTokenEndpoint._get_token"><code class="xref py py-func docutils literal notranslate"><span class="pre">_get_token()</span></code></a>.</p>
 <p>There are circumstances (e.g., during unit testing) when we want
 to override the expires_at time that was set by the token API
-call. For those circumstances use the <cite>expires_in_override</cite>
+call. For those circumstances use the <cite>expires_at_override</cite>
 parameter.</p>
 </dd></dl>
 
@@ -360,6 +362,8 @@ parameter.</p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../modules.html">stanford.green Modules</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="base.html">stanford.green</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">stanford.green.kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ldap.html">stanford.green.ldap</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">stanford.green.oauth2</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
@@ -394,7 +398,7 @@ parameter.</p>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../modules.html">stanford.green Modules</a><ul>
-      <li>Previous: <a href="base.html" title="previous chapter">stanford.green</a></li>
+      <li>Previous: <a href="ldap.html" title="previous chapter">stanford.green.ldap</a></li>
       <li>Next: <a href="zulutime.html" title="next chapter">stanford.green.zulutime</a></li>
   </ul></li>
   </ul></li>

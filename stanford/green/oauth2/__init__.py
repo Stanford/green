@@ -1,16 +1,21 @@
 """Library to interact with OAuth2 endpoints.
 
+.. _exponential-backoff-ca: https://github.com/macrotex/python-exponential-backoff-ca
+
 --------
 Overview
 --------
 
 The ``stanford.green.oauth2`` package provides classes to connect to
-an OAuth2 Authorizaton Server and get an access token. The classes
-support retries via the ``exponential_backoff_ca`` package. Once you
+an OAuth2 Authorization Server and get an access token. These classes
+support retries via the
+`exponential_backoff_ca Python package <exponential-backoff-ca_>`_.
+Once you
 have the access token it is up to you to use it to make API calls.
 
 There is built-in file-based caching to minimize the number of times
 you have to go out to the access token endpoint.
+
 
 --------
 Examples
@@ -24,8 +29,8 @@ To connect to an OAuth2 Authorization Server and get an access token::
   # The URL to get the token (provided by OAuth2 Authorization Service):
   url = "https://api.endpoint.com/api/v1/token"
 
-  # The ApiAccessTokenEndpoint object requires an exponential backoff object to
-  # do the retries:
+  # The ApiAccessTokenEndpoint object requires an exponential backoff
+  # object to do the retries:
   time_slot_secs = 3.0  # The number of seconds in each time slot.
   num_iterations = 4    # The number of iterations.
   limit_value    = 10.0 # Don't wait any longer than this number of seconds.
@@ -59,8 +64,8 @@ To connect to an ACS-style API endpoint you use much the same code as above::
   # The URL to get the token (provided by OAuth2 Authorization Service):
   url = "https://api.endpoint.com/api/v1/token"
 
-  # The ApiAccessTokenEndpoint object requires an exponential backoff object to
-  # do the retries:
+  # The ApiAccessTokenEndpoint object requires an exponential backoff
+  # object to do the retries:
   time_slot_secs = 3.0  # The number of seconds in each time slot.
   num_iterations = 4    # The number of iterations.
   limit_value    = 10.0 # Don't wait any longer than this number of seconds.
@@ -219,7 +224,7 @@ class ApiAccessTokenEndpoint():
 
         * ``acs_api``: a Stanford ACS-style API endpoint
 
-        * ``oauth2``:  a generic OAUth2 Authorization token endpoint
+        * ``oauth2``:  a generic OAuth2 Authorization token endpoint
 
     :type endpoint_type: str
 
@@ -372,7 +377,7 @@ class ApiAccessTokenEndpoint():
 
         There are circumstances (e.g., during unit testing) when we want
         to override the expires_at time that was set by the token API
-        call. For those circumstances use the `expires_in_override`
+        call. For those circumstances use the `expires_at_override`
         parameter.
 
         """
