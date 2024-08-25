@@ -33,8 +33,69 @@
 
           <div class="body" role="main">
             
-  <section id="stanford-green-kerberos">
-<h1>stanford.green.kerberos<a class="headerlink" href="#stanford-green-kerberos" title="Link to this heading">¶</a></h1>
+  <section id="module-stanford.green.kerberos">
+<span id="stanford-green-kerberos"></span><h1>stanford.green.kerberos<a class="headerlink" href="#module-stanford.green.kerberos" title="Link to this heading">¶</a></h1>
+<p>Library to manage Kerberos tickets</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Use stanford.green.kerberos to provision and maintain a Kerberos ticket
+cache. Uses the <a class="reference external" href="https://pypi.org/project/filelock/">filelock</a> Python package to avoid two
+instances attempting to write to the same ticket cache at the same time.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><p>from stanford.green.kerberos import KerberosTicket</p>
+<p>kt = KerberosTicket(keytab_path, principal, age_limit_seconds=30)
+kt.create_ticket_file()
+# You now have a valid Kerberos context with the Kerberos ticket
+# file pointed to by the KRB5CCNAME environment variable.</p>
+</div></blockquote>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.kerberos.</span></span><span class="sig-name descname"><span class="pre">KerberosTicket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keytab_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kprincipal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_lock_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age_limit_seconds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket" title="Link to this definition">¶</a></dt>
+<dd><p>A Kerberos ticket Python object.</p>
+<p>Initialization requires the passing in of the keytab file path <em>and</em> the principal
+name.</p>
+<p>The ticket lockfile location defaults to the ticket filename suffixed with “.lock”.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket.cleanup">
+<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket.cleanup" title="Link to this definition">¶</a></dt>
+<dd><p>Remove the kerberos ticket and lock files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket.create_ticket_file">
+<span class="sig-name descname"><span class="pre">create_ticket_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket.create_ticket_file" title="Link to this definition">¶</a></dt>
+<dd><p>Create/update the Kerberos ticket file (if needed).</p>
+<p>Create/update the Kerberos ticket file, but only if the ticket
+file needs to be renewed. Also set the environment variable
+<span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">KRB5CCNAME</span></code> to point to the Kerberos ticket file.</p>
+<p>The path to the ticket file comes from <code class="docutils literal notranslate"><span class="pre">self.keytab_path</span></code>.</p>
+<p>This method only creates the ticket file if it can acquire the
+ticket lock file. Given that creating a Kerberos ticket file takes less
+than a second (under normal circumstances), putting a 10-second
+timeout on acquiring the lock file is more than sufficient.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket.ticket_file_needs_updating">
+<span class="sig-name descname"><span class="pre">ticket_file_needs_updating</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket.ticket_file_needs_updating" title="Link to this definition">¶</a></dt>
+<dd><p>Return true if the Kerberos ticket file needs updating, false otherwise.</p>
+<dl class="simple">
+<dt>The Kerberos ticket file needs updating in the following cases:</dt><dd><ul class="simple">
+<li><p>it does not already exist;</p></li>
+<li><p>it <em>does</em> exist but is empty;</p></li>
+<li><p>it <em>does</em> exist but is too old. The ticket file is too old if
+the current ticket file is more than <code class="docutils literal notranslate"><span class="pre">self.age_limit_seconds</span></code> old.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 
@@ -67,7 +128,17 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../modules.html">stanford.green Modules</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="base.html">stanford.green</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">stanford.green.kerberos</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">stanford.green.kerberos</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket"><code class="docutils literal notranslate"><span class="pre">KerberosTicket</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.cleanup"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.cleanup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.create_ticket_file"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.create_ticket_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.ticket_file_needs_updating"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.ticket_file_needs_updating()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="ldap.html">stanford.green.ldap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="oauth2.html">stanford.green.oauth2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="zulutime.html">stanford.green.zulutime</a></li>

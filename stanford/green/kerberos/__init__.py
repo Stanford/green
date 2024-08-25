@@ -1,6 +1,19 @@
-"""
+"""Library to manage Kerberos tickets
 
-Example of use::
+
+.. _filelock: https://pypi.org/project/filelock/
+
+--------
+Overview
+--------
+
+Use stanford.green.kerberos to provision and maintain a Kerberos ticket
+cache. Uses the `filelock <filelock_>`_ Python package to avoid two
+instances attempting to write to the same ticket cache at the same time.
+
+--------
+Examples
+--------
 
     from stanford.green.kerberos import KerberosTicket
 

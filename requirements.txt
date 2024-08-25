@@ -1,6 +1,7 @@
 mypy
 exponential_backoff_ca
 diskcache
+filelock
 
 python-ldap
 
