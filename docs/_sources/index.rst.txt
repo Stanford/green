@@ -12,6 +12,3 @@ stanford-green documentation
    :caption: Contents:
 
    modules
-	     
-	     
-

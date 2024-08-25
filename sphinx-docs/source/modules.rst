@@ -7,5 +7,6 @@ stanford.green Modules
 
    modules/base
    modules/kerberos
+   modules/ldap
    modules/oauth2
    modules/zulutime
