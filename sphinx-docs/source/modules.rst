@@ -6,5 +6,6 @@ stanford.green Modules
    :caption: Contents:
 
    modules/base
+   modules/kerberos
    modules/oauth2
    modules/zulutime
