@@ -4,8 +4,8 @@
 Overview
 --------
 
-LDAP functions useful for Stanford-based applications. Currenently the
-only authentication supported when connecting to an LDAP server is GSSAPI
+LDAP functions useful for Stanford-based applications. Currently the
+only authentication method supported when connecting to an LDAP server is GSSAPI
 (Kerberos).
 
 --------
@@ -394,6 +394,8 @@ def attribute_is_multi_valued(attribute_name: str) -> bool:
 
 
 class LDAP():
+    """The LDAP class.
+    """
 
     def __init__(self,
                  host: str = 'ldap.stanford.edu',
@@ -467,6 +469,18 @@ class LDAP():
             scope:     str='sub'
     ) -> dict[str, LDAPResult]:
         """Perform an LDAP search.
+
+        :param basedn: base DN on which to search
+        :type basedn: str
+
+        :param filterstr: a valid LDAP filter clause (e.g., ``(uid=jstanford)``)
+        :type filterstr: str
+
+        :param filterstr: a list of attributes to return
+        :type filterstr: list[str]
+
+        :param scope: the search scope; must be one "sub", "base", or "one".
+        :type scope: str
 
         This method is a thin wrapper around the ldap package's search method. The
         difference is in how it behaves when there are no results and the format
