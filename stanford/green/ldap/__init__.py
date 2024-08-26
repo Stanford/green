@@ -21,8 +21,14 @@ Determine if a Stanford attribute is single- or multi-valued::
   True
 
 Connect to the main Stanford LDAP server and get a user's accounts-tree
-information (this assumes you have a valid Kerberos context):
+information (this assumes you have a valid Kerberos context)::
 
+  from stanford.green.ldap import LDAP
+
+  ldap1 = LDAP()
+  results = ldap1.sunetid_account_info('jstanford')  # Get account tree LDAP information for user 'jstanford'
+  results = ldap1.sunetid_people_info('jstanford')   # Get people tree LDAP information for user 'jstanford'
+  results = ldap1.sunetid_info('jstanford')          # Get BOTH account and people tree LDAP information for user 'jstanford'
 
 """
 import logging
@@ -42,7 +48,7 @@ class GreenUnknownLDAPAttribute(Exception):
     pass
 
 class GreenLDAPNoResultsException(Exception):
-    """Used when no results are returned"""
+    """Used when no LDAP results are found"""
     pass
 
 
@@ -361,6 +367,17 @@ BASEDN_ACCOUNTS = "cn=accounts,dc=stanford,dc=edu"
 BASEDN_PEOPLE   = "cn=people,dc=stanford,dc=edu"
 
 def account_attribute_is_single_valued(attribute_name: str) -> bool:
+    """Return True if `attribute_name` is a single-valued account-tree attribute, False otherwise.
+
+    :param attribute_name: a string
+    :type prefix: str
+    :return: ``True`` if `attribute_name` is single-valued and a valid
+      account-tree attribute, ``False`` otherwise.
+
+    :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
+      account-tree attribute name.
+
+    """
     if (attribute_name in ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY):
         return (ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
     else:
@@ -368,9 +385,29 @@ def account_attribute_is_single_valued(attribute_name: str) -> bool:
         raise GreenUnknownLDAPAttribute(msg)
 
 def account_attribute_is_multi_valued(attribute_name: str) -> bool:
+    """Return True if `attribute_name` is multi-valued account-tree, False otherwise.
+
+    :param attribute_name: a string
+    :type prefix: str
+    :return: ``True`` if `attribute_name` is a valid
+      account-tree attribute and is multi-valued, ``False`` otherwise.
+
+    :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
+      account-tree attribute name.
+
+    """
     return not account_attribute_is_single_valued(attribute_name)
 
 def people_attribute_is_single_valued(attribute_name: str) -> bool:
+    """Return True if `attribute_name` is single-valued people-tree, False otherwise.
+
+    :param attribute_name: a string
+    :type prefix: str
+    :return: ``True`` if `attribute_name` is single-valued, ``False`` otherwise.
+
+    :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
+      people-tree attribute name.
+    """
     if (attribute_name in PEOPLE_ATTRIBUTE_TO_MULTIPLICITY):
         return (PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
     else:
@@ -378,6 +415,15 @@ def people_attribute_is_single_valued(attribute_name: str) -> bool:
         raise GreenUnknownLDAPAttribute(msg)
 
 def people_attribute_is_multi_valued(attribute_name: str) -> bool:
+    """Return True if `attribute_name` is single-valued, False otherwise.
+
+    :param attribute_name: a string
+    :type prefix: str
+    :return: ``True`` if `attribute_name` is single-valued, ``False`` otherwise.
+
+    :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
+      people-tree attribute name.
+    """
     return not people_attribute_is_single_valued(attribute_name)
 
 def attribute_is_single_valued(attribute_name: str) -> bool:
@@ -386,6 +432,9 @@ def attribute_is_single_valued(attribute_name: str) -> bool:
     :param attribute_name: a string
     :type prefix: str
     :return: ``True`` if `attribute_name` is single-valued, ``False`` otherwise.
+
+    :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
+      attribute name.
     """
 
     if (attribute_name in ATTRIBUTE_TO_MULTIPLICITY):
@@ -395,8 +444,16 @@ def attribute_is_single_valued(attribute_name: str) -> bool:
         raise GreenUnknownLDAPAttribute(msg)
 
 def attribute_is_multi_valued(attribute_name: str) -> bool:
-    return not attribute_is_single_valued(attribute_name)
+    """Return True if `attribute_name` is multi-valued, False otherwise.
 
+    :param attribute_name: a string
+    :type prefix: str
+    :return: ``True`` if `attribute_name` is multi-valued, ``False`` otherwise.
+
+    :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
+      attribute name.
+    """
+    return not attribute_is_single_valued(attribute_name)
 
 class LDAP():
     """The LDAP class.

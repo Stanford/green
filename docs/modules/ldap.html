@@ -54,11 +54,19 @@ only authentication method supported when connecting to an LDAP server is GSSAPI
 </div>
 <p>Connect to the main Stanford LDAP server and get a user’s accounts-tree
 information (this assumes you have a valid Kerberos context):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">stanford.green.ldap</span> <span class="kn">import</span> <span class="n">LDAP</span>
+
+<span class="n">ldap1</span> <span class="o">=</span> <span class="n">LDAP</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_account_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>  <span class="c1"># Get account tree LDAP information for user &#39;jstanford&#39;</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_people_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>   <span class="c1"># Get people tree LDAP information for user &#39;jstanford&#39;</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>          <span class="c1"># Get BOTH account and people tree LDAP information for user &#39;jstanford&#39;</span>
+</pre></div>
+</div>
 </section>
 <dl class="py exception">
 <dt class="sig sig-object py" id="stanford.green.ldap.GreenLDAPNoResultsException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenLDAPNoResultsException</span></span><a class="headerlink" href="#stanford.green.ldap.GreenLDAPNoResultsException" title="Link to this definition">¶</a></dt>
-<dd><p>Used when no results are returned</p>
+<dd><p>Used when no LDAP results are found</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -223,6 +231,62 @@ getting no results.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="stanford.green.ldap.account_attribute_is_multi_valued">
+<span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">account_attribute_is_multi_valued</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.ldap.account_attribute_is_multi_valued" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>attribute_name</cite> is multi-valued account-tree, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute_name</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <cite>attribute_name</cite> is a valid
+account-tree attribute and is multi-valued, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="stanford.green.ldap.GreenUnknownLDAPAttribute"><strong>GreenUnknownLDAPAttribute</strong></a> – if <cite>attribute_name</cite> is not a valid
+account-tree attribute name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="stanford.green.ldap.account_attribute_is_single_valued">
+<span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">account_attribute_is_single_valued</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.ldap.account_attribute_is_single_valued" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>attribute_name</cite> is a single-valued account-tree attribute, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute_name</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <cite>attribute_name</cite> is single-valued and a valid
+account-tree attribute, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="stanford.green.ldap.GreenUnknownLDAPAttribute"><strong>GreenUnknownLDAPAttribute</strong></a> – if <cite>attribute_name</cite> is not a valid
+account-tree attribute name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="stanford.green.ldap.attribute_is_multi_valued">
+<span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">attribute_is_multi_valued</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.ldap.attribute_is_multi_valued" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>attribute_name</cite> is multi-valued, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute_name</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <cite>attribute_name</cite> is multi-valued, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="stanford.green.ldap.GreenUnknownLDAPAttribute"><strong>GreenUnknownLDAPAttribute</strong></a> – if <cite>attribute_name</cite> is not a valid
+attribute name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="stanford.green.ldap.attribute_is_single_valued">
 <span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">attribute_is_single_valued</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.ldap.attribute_is_single_valued" title="Link to this definition">¶</a></dt>
 <dd><p>Return True if <cite>attribute_name</cite> is single-valued, False otherwise.</p>
@@ -232,6 +296,46 @@ getting no results.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <cite>attribute_name</cite> is single-valued, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="stanford.green.ldap.GreenUnknownLDAPAttribute"><strong>GreenUnknownLDAPAttribute</strong></a> – if <cite>attribute_name</cite> is not a valid
+attribute name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="stanford.green.ldap.people_attribute_is_multi_valued">
+<span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">people_attribute_is_multi_valued</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.ldap.people_attribute_is_multi_valued" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>attribute_name</cite> is single-valued, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute_name</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <cite>attribute_name</cite> is single-valued, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="stanford.green.ldap.GreenUnknownLDAPAttribute"><strong>GreenUnknownLDAPAttribute</strong></a> – if <cite>attribute_name</cite> is not a valid
+people-tree attribute name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="stanford.green.ldap.people_attribute_is_single_valued">
+<span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">people_attribute_is_single_valued</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.ldap.people_attribute_is_single_valued" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>attribute_name</cite> is single-valued people-tree, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute_name</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <cite>attribute_name</cite> is single-valued, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="stanford.green.ldap.GreenUnknownLDAPAttribute"><strong>GreenUnknownLDAPAttribute</strong></a> – if <cite>attribute_name</cite> is not a valid
+people-tree attribute name.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -282,7 +386,12 @@ getting no results.</p>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.sunetid_people_info"><code class="docutils literal notranslate"><span class="pre">LDAP.sunetid_people_info()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.account_attribute_is_multi_valued"><code class="docutils literal notranslate"><span class="pre">account_attribute_is_multi_valued()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.account_attribute_is_single_valued"><code class="docutils literal notranslate"><span class="pre">account_attribute_is_single_valued()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.attribute_is_multi_valued"><code class="docutils literal notranslate"><span class="pre">attribute_is_multi_valued()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.attribute_is_single_valued"><code class="docutils literal notranslate"><span class="pre">attribute_is_single_valued()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.people_attribute_is_multi_valued"><code class="docutils literal notranslate"><span class="pre">people_attribute_is_multi_valued()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.people_attribute_is_single_valued"><code class="docutils literal notranslate"><span class="pre">people_attribute_is_single_valued()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="oauth2.html">stanford.green.oauth2</a></li>
