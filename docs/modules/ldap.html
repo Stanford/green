@@ -38,8 +38,8 @@
 <p>Useful LDAP functions.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
-<p>LDAP functions useful for Stanford-based applications. Currenently the
-only authentication supported when connecting to an LDAP server is GSSAPI
+<p>LDAP functions useful for Stanford-based applications. Currently the
+only authentication method supported when connecting to an LDAP server is GSSAPI
 (Kerberos).</p>
 </section>
 <section id="examples">
@@ -65,6 +65,63 @@ information (this assumes you have a valid Kerberos context):</p>
 <dt class="sig sig-object py" id="stanford.green.ldap.GreenUnknownLDAPAttribute">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenUnknownLDAPAttribute</span></span><a class="headerlink" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="stanford.green.ldap.LDAP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">LDAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ldap.stanford.edu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_on_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.ldap.LDAP" title="Link to this definition">¶</a></dt>
+<dd><p>The LDAP class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.ldap.LDAP.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Create a connected ldap object.</p>
+<p>Currently, the only connection method is using GSSAPI. That is, there
+must be a valid Kerberos context.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.ldap.LDAP.search">
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basedn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filterstr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'(objectClass=*)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sub'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.search" title="Link to this definition">¶</a></dt>
+<dd><p>Perform an LDAP search.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>basedn</strong> (<em>str</em>) – base DN on which to search</p></li>
+<li><p><strong>filterstr</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – a valid LDAP filter clause (e.g., <code class="docutils literal notranslate"><span class="pre">(uid=jstanford)</span></code>)</p></li>
+<li><p><strong>filterstr</strong> – a list of attributes to return</p></li>
+<li><p><strong>scope</strong> (<em>str</em>) – the search scope; must be one “sub”, “base”, or “one”.</p></li>
+</ul>
+</dd>
+</dl>
+<p>This method is a thin wrapper around the ldap package’s search method. The
+difference is in how it behaves when there are no results and the format
+of the returned value.</p>
+<p>The returned result is a dict where each key is the dn of some
+tree result. Each key maps to another dict containing the attributes. This
+is most easily explained with an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">basedn</span> <span class="o">=</span> <span class="s2">&quot;dc=stanford,dc=edu&quot;</span>
+<span class="n">filterstr</span> <span class="o">=</span> <span class="s2">&quot;uid=jstanford&quot;</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">search</span><span class="p">(</span><span class="n">basdn</span><span class="p">,</span> <span class="n">filterstr</span><span class="o">=</span><span class="n">filterstr</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="c1"># results will look something like</span>
+<span class="c1"># {</span>
+<span class="c1">#   &#39;suRegID=f0d08565850320613717ebf068585447,cn=people,dc=stanford,dc=edu&#39;:</span>
+<span class="c1">#     {&#39;suMailCode&#39;: &#39;4321&#39;, &#39;suGwAffilCode1&#39;: &#39;stanford:staff&#39;, ... }</span>
+<span class="c1">#   &#39;uid=jstanford,cn=accounts,dc=stanford,dc=edu&#39;:</span>
+<span class="c1">#     { &#39;uid&#39;: &#39;jstanford&#39;, &#39;suSeasSunetID&#39;: [&#39;jstanford&#39;, &#39;jane.stanford&#39;], ... }</span>
+<span class="c1"># }</span>
+<span class="c1">#</span>
+<span class="c1"># There are two keys in the above: the &quot;suRegID=f0...&quot; one and the &quot;uid=jstanford,...&quot; one.</span>
+</pre></div>
+</div>
+<p>Note that the attributes are returned as either a string (for
+single-valued attributes) or a list (for multi-valued attributes).
+Furthermore, LDAP returns vaules as byte-strings so this method
+converts these byte-strings into regular utf8 strings.</p>
+<p>If no results are returned this method raises the
+<cite>LDAPNoResultsException</cite> exception.</p>
+</dd></dl>
+
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="stanford.green.ldap.attribute_is_single_valued">
@@ -118,6 +175,11 @@ information (this assumes you have a valid Kerberos context):</p>
 <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.GreenLDAPNoResultsException"><code class="docutils literal notranslate"><span class="pre">GreenLDAPNoResultsException</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute"><code class="docutils literal notranslate"><span class="pre">GreenUnknownLDAPAttribute</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.LDAP"><code class="docutils literal notranslate"><span class="pre">LDAP</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.connect"><code class="docutils literal notranslate"><span class="pre">LDAP.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.search"><code class="docutils literal notranslate"><span class="pre">LDAP.search()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.attribute_is_single_valued"><code class="docutils literal notranslate"><span class="pre">attribute_is_single_valued()</span></code></a></li>
 </ul>
 </li>
