@@ -38,10 +38,11 @@ LDAPResult = dict[str, dict[str, str|list[str]]]
 logger = logging.getLogger(__name__)
 
 class GreenUnknownLDAPAttribute(Exception):
+    """Used when an unrecognized attribute found"""
     pass
 
 class GreenLDAPNoResultsException(Exception):
-    """Use when no results are returned"""
+    """Used when no results are returned"""
     pass
 
 
@@ -355,6 +356,10 @@ PEOPLE_ATTRIBUTE_TO_MULTIPLICITY |= PEOPLE_ATTRIBUTE_TO_MULTIPLICITY_EXTRA
 # Put them together.
 ATTRIBUTE_TO_MULTIPLICITY = ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY | PEOPLE_ATTRIBUTE_TO_MULTIPLICITY
 
+BASEDN          = "dc=stanford,dc=edu"
+BASEDN_ACCOUNTS = "cn=accounts,dc=stanford,dc=edu"
+BASEDN_PEOPLE   = "cn=people,dc=stanford,dc=edu"
+
 def account_attribute_is_single_valued(attribute_name: str) -> bool:
     if (attribute_name in ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY):
         return (ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
@@ -476,8 +481,8 @@ class LDAP():
         :param filterstr: a valid LDAP filter clause (e.g., ``(uid=jstanford)``)
         :type filterstr: str
 
-        :param filterstr: a list of attributes to return
-        :type filterstr: list[str]
+        :param attrlist: a list of attributes to return
+        :type attrlist: list[str]
 
         :param scope: the search scope; must be one "sub", "base", or "one".
         :type scope: str
@@ -560,3 +565,102 @@ class LDAP():
             result_set[dn] = attribute_values
 
         return result_set
+
+    def sunetid_account_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> dict[str, LDAPResult]:
+        """Return the account tree information for user with uid equal to ``sunetid``.
+
+        :param sunetid: sunetid of user whose information you seek
+        :type sunetid: str
+
+        :param attrlist: a list of attributes to return
+        :type attrlist: list[str]
+
+        :raises GreenLDAPNoResultsException: if there are no results.
+
+        Example::
+
+          # results = LDAP.sunetid_account_info('jstanford')
+          #
+          # results will look something like
+          # {
+          #   'uid=jstanford,cn=accounts,dc=stanford,dc=edu':
+          #     { 'uid': 'jstanford', 'suSeasSunetID': ['jstanford', 'jane.stanford'], ... }
+          # }
+          #
+
+        This method (like :py:meth:`~search`) raises the
+        :py:exc:`~GreenLDAPNoResultsException` exception if no results are
+        returned, so be sure to trap that error if your code is OK with
+        getting no results.
+
+        """
+        basedn    = BASEDN_ACCOUNTS
+        filterstr = f"uid={sunetid}"
+        return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
+
+    def sunetid_people_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> dict[str, LDAPResult]:
+        """Return the people tree information for user with uid equal to ``sunetid``.
+
+        :param sunetid: sunetid of user whose information you seek
+        :type sunetid: str
+
+        :param attrlist: a list of attributes to return
+        :type attrlist: list[str]
+
+        :raises GreenLDAPNoResultsException: if there are no results.
+
+        Example::
+
+          # results = LDAP.sunetid_people_info('jstanford')
+          #
+          # results will look something like
+          # {
+          #   'suRegID=f0d08565850320613717ebf068585447,cn=people,dc=stanford,dc=edu':
+          #     {'suMailCode': '4321', 'suGwAffilCode1': 'stanford:staff', ... }
+          # }
+          #
+
+        This method (like :py:meth:`~search`) raises the
+        :py:exc:`~GreenLDAPNoResultsException` exception if no results are
+        returned, so be sure to trap that error if your code is OK with
+        getting no results.
+
+        """
+        basedn    = BASEDN_PEOPLE
+        filterstr = f"uid={sunetid}"
+        return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
+
+    def sunetid_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> dict[str, LDAPResult]:
+        """Return the people and accounts tree information for user with uid equal to ``sunetid``.
+
+        :param sunetid: sunetid of user whose information you seek
+        :type sunetid: str
+
+        :param attrlist: a list of attributes to return
+        :type attrlist: list[str]
+
+        :raises GreenLDAPNoResultsException: if there are no results.
+
+        Example::
+
+          # results = LDAP.sunetid_info('jstanford')
+          #
+          # results will look something like
+          # {
+          #   'uid=jstanford,cn=accounts,dc=stanford,dc=edu':
+          #     { 'uid': 'jstanford', 'suSeasSunetID': ['jstanford', 'jane.stanford'], ... },
+          #   'suRegID=f0d08565850320613717ebf068585447,cn=people,dc=stanford,dc=edu':
+          #     {'suMailCode': '4321', 'suGwAffilCode1': 'stanford:staff', ... }
+          # }
+          #
+
+        This method (like :py:meth:`~search`) raises the
+        :py:exc:`~GreenLDAPNoResultsException` exception if no results are
+        returned, so be sure to trap that error if your code is OK with
+        getting no results.
+
+        """
+        basedn    = BASEDN
+        filterstr = f"uid={sunetid}"
+        return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
+

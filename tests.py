@@ -298,6 +298,17 @@ class TestGreen(unittest.TestCase):
         basedn =    'dc=stanford,dc=edu'
         filterstr = 'uid=adamhl'
         results = ldap1.search(basedn, filterstr=filterstr)
+
+        results = ldap1.sunetid_account_info('adamhl')
+        #print(results)
+
+        results = ldap1.sunetid_account_info('adamhl', attrlist=['uid', 'suMailDrop'])
+        print(results)
+
+        results = ldap1.sunetid_people_info('adamhl', attrlist=['sn', 'displayName'])
+        print(results)
+
+        results = ldap1.sunetid_info('adamhl', attrlist=['suMailDrop', 'displayName'])
         print(results)
 
 if __name__ == '__main__':
