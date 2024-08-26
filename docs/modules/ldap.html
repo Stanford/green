@@ -14,6 +14,8 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="stanford.green.oauth2" href="oauth2.html" />
+    <link rel="prev" title="stanford.green.kerberos" href="kerberos.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -34,6 +36,25 @@
   <section id="module-stanford.green.ldap">
 <span id="stanford-green-ldap"></span><h1>stanford.green.ldap<a class="headerlink" href="#module-stanford.green.ldap" title="Link to this heading">¶</a></h1>
 <p>Useful LDAP functions.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>LDAP functions useful for Stanford-based applications. Currenently the
+only authentication supported when connecting to an LDAP server is GSSAPI
+(Kerberos).</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>Determine if a Stanford attribute is single- or multi-valued:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">stanford.green.ldap</span> <span class="kn">import</span> <span class="n">attribute_is_multi_valued</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attribute_is_multi_valued</span><span class="p">(</span><span class="s1">&#39;uid&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attribute_is_multi_valued</span><span class="p">(</span><span class="s1">&#39;suMailDrop&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Connect to the main Stanford LDAP server and get a user’s accounts-tree
+information (this assumes you have a valid Kerberos context):</p>
+</section>
 <dl class="py exception">
 <dt class="sig sig-object py" id="stanford.green.ldap.GreenLDAPNoResultsException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenLDAPNoResultsException</span></span><a class="headerlink" href="#stanford.green.ldap.GreenLDAPNoResultsException" title="Link to this definition">¶</a></dt>
@@ -44,6 +65,20 @@
 <dt class="sig sig-object py" id="stanford.green.ldap.GreenUnknownLDAPAttribute">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenUnknownLDAPAttribute</span></span><a class="headerlink" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="stanford.green.ldap.attribute_is_single_valued">
+<span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">attribute_is_single_valued</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.ldap.attribute_is_single_valued" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>attribute_name</cite> is single-valued, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute_name</strong> – a string</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <cite>attribute_name</cite> is single-valued, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
@@ -74,14 +109,32 @@
 </search>
 <script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">stanford.green Modules</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">stanford.green Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="base.html">stanford.green</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kerberos.html">stanford.green.kerberos</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">stanford.green.ldap</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.GreenLDAPNoResultsException"><code class="docutils literal notranslate"><span class="pre">GreenLDAPNoResultsException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute"><code class="docutils literal notranslate"><span class="pre">GreenUnknownLDAPAttribute</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.attribute_is_single_valued"><code class="docutils literal notranslate"><span class="pre">attribute_is_single_valued()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="oauth2.html">stanford.green.oauth2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zulutime.html">stanford.green.zulutime</a></li>
+</ul>
+</li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../modules.html">stanford.green Modules</a><ul>
+      <li>Previous: <a href="kerberos.html" title="previous chapter">stanford.green.kerberos</a></li>
+      <li>Next: <a href="oauth2.html" title="next chapter">stanford.green.oauth2</a></li>
+  </ul></li>
   </ul></li>
 </ul>
 </div>

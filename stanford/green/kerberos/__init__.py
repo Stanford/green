@@ -15,13 +15,14 @@ instances attempting to write to the same ticket cache at the same time.
 Examples
 --------
 
-    from stanford.green.kerberos import KerberosTicket
+Simple example::
 
-    kt = KerberosTicket(keytab_path, principal, age_limit_seconds=30)
-    kt.create_ticket_file()
-    # You now have a valid Kerberos context with the Kerberos ticket
-    # file pointed to by the KRB5CCNAME environment variable.
+  from stanford.green.kerberos import KerberosTicket
 
+  kt = KerberosTicket(keytab_path, principal, age_limit_seconds=30)
+  kt.create_ticket_file()
+  # You now have a valid Kerberos context with the Kerberos ticket
+  # file pointed to by the KRB5CCNAME environment variable.
 """
 
 import os
@@ -35,7 +36,7 @@ from typing import Any, Optional
 ## END OF TYPING
 
 class KerberosTicket():
-    """A Kerberos ticket Python object.
+    """A Kerberos ticket object.
 
     Initialization requires the passing in of the keytab file path *and* the principal
     name.

@@ -16,4 +16,7 @@ types-requests
 sphinx
 sphinx-markdown-builder
 
+--extra-index-url=https://code.stanford.edu/api/v4/projects/green%2Fstanford-green/packages/pypi/simple
+stanford-green>=0.3.1
+
 
