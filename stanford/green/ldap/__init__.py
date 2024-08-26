@@ -1,12 +1,37 @@
 """Useful LDAP functions.
 
+--------
+Overview
+--------
+
+LDAP functions useful for Stanford-based applications. Currenently the
+only authentication supported when connecting to an LDAP server is GSSAPI
+(Kerberos).
+
+--------
+Examples
+--------
+
+Determine if a Stanford attribute is single- or multi-valued::
+
+  >>> from stanford.green.ldap import attribute_is_multi_valued
+  >>> attribute_is_multi_valued('uid')
+  False
+  >>> attribute_is_multi_valued('suMailDrop')
+  True
+
+Connect to the main Stanford LDAP server and get a user's accounts-tree
+information (this assumes you have a valid Kerberos context):
+
+
 """
 import logging
 import ldap      # type: ignore
 import ldap.sasl # type: ignore
 
 ## TYPING
-from typing import Optional
+from typing import Optional, Any, Tuple
+LDAPResult = dict[str, dict[str, str|list[str]]]
 ## END OF TYPING
 
 ## Set up logging
@@ -321,6 +346,7 @@ PEOPLE_ATTRIBUTE_TO_MULTIPLICITY_EXTRA = {
     'suOU': 'multi',
     'suMobileID': 'single',
     'suGivenName': 'multi',
+    'suGwAffilQBFR1': 'single',
 }
 
 PEOPLE_ATTRIBUTE_TO_MULTIPLICITY |= SUGAL_ATTRIBUTE_TO_MULTIPLICITY
@@ -350,6 +376,13 @@ def people_attribute_is_multi_valued(attribute_name: str) -> bool:
     return not people_attribute_is_single_valued(attribute_name)
 
 def attribute_is_single_valued(attribute_name: str) -> bool:
+    """Return True if `attribute_name` is single-valued, False otherwise.
+
+    :param attribute_name: a string
+    :type prefix: str
+    :return: ``True`` if `attribute_name` is single-valued, ``False`` otherwise.
+    """
+
     if (attribute_name in ATTRIBUTE_TO_MULTIPLICITY):
         return (ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
     else:
@@ -370,7 +403,7 @@ class LDAP():
         if (connect_on_init):
             self.ldap = self.connect()
 
-    def connect(self):
+    def connect(self) -> Any:
         """Create a connected ldap object.
 
         Currently, the only connection method is using GSSAPI. That is, there
@@ -384,7 +417,7 @@ class LDAP():
 
         return ldap_conn
 
-    def scope_normalize(self, scope: str):
+    def scope_normalize(self, scope: str) -> Any:
         scopes = {
             'sub':  ldap.SCOPE_SUBTREE,
             'base': ldap.SCOPE_BASE,
@@ -397,93 +430,12 @@ class LDAP():
 
         return scopes[scope]
 
-    def dn_search(
-            self,
-            basedn:    str,
-            filterstr: str='(objectClass=*)',
-            attrlist:  Optional[list[str]]=None,
-            scope:     str='sub'
-    ) -> dict[str, str]:
-        """Get LDAP information for a dn.
 
-        If more than one result returns this will raise an Exception.
-
-        If no account with that sunetid exists raises the
-        LDAPNoResultsException exception. If an account _does_ exist, returns
-        a dict of this form:
-
-            {
-              'uid': uid,
-              'suKerberosStatus': status,
-              'owner': owner id,
-            }
-
-        Example:
-
-            {
-              'uid': 'adamhl',
-              'suKerberosStatus': 'active',
-              'owner': 'suRegID=111823c0c3fe409e9fbde77fee52b100,cn=people,dc=stanford,dc=edu',
-            }
-
-        """
-        search_scope  = self.scope_normalize(scope)
-
-        logger.debug(f"basedn:         {basedn}")
-        logger.debug(f"search scope:   {search_scope}")
-        logger.debug(f"search filter:  {filterstr}")
-        logger.debug(f"attribute list: {attrlist}")
-
-        ldap_result_id = self.ldap.search(
-            basedn,
-            search_scope,
-            filterstr=filterstr,
-            attrlist=attrlist
-        )
-
-        logger.debug(f"ldap_result_id is {ldap_result_id}")
-
-        result_set = []
-        try:
-            result_type, result_data = self.ldap.result(ldap_result_id, 0)
-        except ldap.NO_SUCH_OBJECT as _:
-            # No dn found, so nothing to add.
-            logger.error("no such object")
-            pass
-        else:
-            if result_type == ldap.RES_SEARCH_ENTRY:
-                result_set.append(result_data)
-            else:
-                pass
-
-        logger.debug(f"result_set: {result_set}")
-
-        # Parse results
-        # Results should look something like this:
-        #   [
-        #     [
-        #       ('uid=adamhl,cn=accounts,dc=stanford,dc=edu', {'uid': [b'adamhl'], 'suLelandStatus': [b'active'], 'suPtsStatus': [b'active'], 'suSeasLocal': [b'adamhl@o365.stanford.edu'], 'suAfsStatus': [b'active'], 'suAccountStatus': [b'active'], 'suEmailStatus': [b'active'], 'suEntryStatus': [b'active'], 'suSeasStatus': [b'active'], 'suKerberosStatus': [b'active'], 'owner': [b'suRegID=111823c0c3fe409e9fbde77fee52b100,cn=people,dc=stanford,dc=edu']})
-        #     ]
-        #   ]
-
-        if (len(result_set) == 0):
-            msg = "no LDAP results"
-            raise GreenLDAPNoResultsException(msg)
-
-        # Get first
-        results = result_set[0]
-
-        if (len(results) == 0):
-            msg = "no LDAP results"
-            raise GreenLDAPNoResultsException(msg)
-
-        result = results[0]
-        logger.debug(f"result: {result}")
-
+    def process_result(self, result: Tuple[str, dict[str, list[Any]]]) -> Tuple[str, LDAPResult]:
         dn     = result[0]
+        logger.info(f"dn is {dn}")
+
         values = result[1]
-        logger.debug(f"dn is {dn}")
-        logger.debug(f"values are {values}")
 
         return_values = {}
         for attribute in values.keys():
@@ -504,4 +456,93 @@ class LDAP():
                 return_values[attribute] = multi_values_decoded
                 logger.debug(f"{attribute}: {multi_values_decoded}")
 
-        return return_values
+        return (dn, return_values)
+
+
+    def search(
+            self,
+            basedn:    str,
+            filterstr: str='(objectClass=*)',
+            attrlist:  Optional[list[str]]=None,
+            scope:     str='sub'
+    ) -> dict[str, LDAPResult]:
+        """Perform an LDAP search.
+
+        This method is a thin wrapper around the ldap package's search method. The
+        difference is in how it behaves when there are no results and the format
+        of the returned value.
+
+        The returned result is a dict where each key is the dn of some
+        tree result. Each key maps to another dict containing the attributes. This
+        is most easily explained with an example::
+
+          basedn = "dc=stanford,dc=edu"
+          filterstr = "uid=jstanford"
+          results = search(basdn, filterstr=filterstr)
+          #
+          # results will look something like
+          # {
+          #   'suRegID=f0d08565850320613717ebf068585447,cn=people,dc=stanford,dc=edu':
+          #     {'suMailCode': '4321', 'suGwAffilCode1': 'stanford:staff', ... }
+          #   'uid=jstanford,cn=accounts,dc=stanford,dc=edu':
+          #     { 'uid': 'jstanford', 'suSeasSunetID': ['jstanford', 'jane.stanford'], ... }
+          # }
+          #
+          # There are two keys in the above: the "suRegID=f0..." one and the "uid=jstanford,..." one.
+
+        Note that the attributes are returned as either a string (for
+        single-valued attributes) or a list (for multi-valued attributes).
+        Furthermore, LDAP returns vaules as byte-strings so this method
+        converts these byte-strings into regular utf8 strings.
+
+        If no results are returned this method raises the
+        `LDAPNoResultsException` exception.
+
+        """
+        search_scope  = self.scope_normalize(scope)
+
+        logger.debug(f"basedn:         {basedn}")
+        logger.debug(f"search scope:   {search_scope}")
+        logger.debug(f"search filter:  {filterstr}")
+        logger.debug(f"attribute list: {attrlist}")
+
+        ldap_result_id = self.ldap.search(
+            basedn,
+            search_scope,
+            filterstr=filterstr,
+            attrlist=attrlist
+        )
+
+        logger.debug(f"ldap_result_id is {ldap_result_id}")
+
+        results = []
+        end_of_results = False
+        while not end_of_results:
+            try:
+                result_type, result_data = self.ldap.result(ldap_result_id, 0)
+            except ldap.NO_SUCH_OBJECT as _:
+                # No dn found, so nothing to add.
+                logger.error("no such object")
+                pass
+            else:
+                if result_type == ldap.RES_SEARCH_ENTRY:
+                    logger.debug("found an LDAP entry")
+                    results.append(result_data)
+                else:
+                    logger.debug("no more LDAP data")
+                    end_of_results = True
+
+        logger.info(f"found {len(results)} results")
+
+        if (len(results) == 0):
+            msg = "no LDAP results"
+            raise GreenLDAPNoResultsException(msg)
+
+        # Process the results
+        result_set = {}
+        for result in results:
+            # The result will be of the form [(dn, {attributes})]
+            (dn, attribute_values) = self.process_result(result[0])
+            result_set[dn] = attribute_values
+
+        return result_set

@@ -44,18 +44,20 @@ instances attempting to write to the same ticket cache at the same time.</p>
 </section>
 <section id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
-<blockquote>
-<div><p>from stanford.green.kerberos import KerberosTicket</p>
-<p>kt = KerberosTicket(keytab_path, principal, age_limit_seconds=30)
-kt.create_ticket_file()
-# You now have a valid Kerberos context with the Kerberos ticket
-# file pointed to by the KRB5CCNAME environment variable.</p>
-</div></blockquote>
+<p>Simple example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">stanford.green.kerberos</span> <span class="kn">import</span> <span class="n">KerberosTicket</span>
+
+<span class="n">kt</span> <span class="o">=</span> <span class="n">KerberosTicket</span><span class="p">(</span><span class="n">keytab_path</span><span class="p">,</span> <span class="n">principal</span><span class="p">,</span> <span class="n">age_limit_seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">kt</span><span class="o">.</span><span class="n">create_ticket_file</span><span class="p">()</span>
+<span class="c1"># You now have a valid Kerberos context with the Kerberos ticket</span>
+<span class="c1"># file pointed to by the KRB5CCNAME environment variable.</span>
+</pre></div>
+</div>
 </section>
 <dl class="py class">
 <dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.kerberos.</span></span><span class="sig-name descname"><span class="pre">KerberosTicket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keytab_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kprincipal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_lock_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age_limit_seconds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket" title="Link to this definition">¶</a></dt>
-<dd><p>A Kerberos ticket Python object.</p>
+<dd><p>A Kerberos ticket object.</p>
 <p>Initialization requires the passing in of the keytab file path <em>and</em> the principal
 name.</p>
 <p>The ticket lockfile location defaults to the ticket filename suffixed with “.lock”.</p>

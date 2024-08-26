@@ -3,7 +3,9 @@
 import unittest
 
 import datetime
+import logging
 import pytz
+import sys
 
 from stanford.green import random_uid
 
@@ -16,6 +18,10 @@ from stanford.green.ldap import account_attribute_is_multi_valued
 from stanford.green.ldap import people_attribute_is_single_valued
 from stanford.green.ldap import people_attribute_is_multi_valued
 from stanford.green.ldap import LDAP
+
+## Logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TestGreen(unittest.TestCase):
 
@@ -289,8 +295,9 @@ class TestGreen(unittest.TestCase):
 
         # Do a search
         ldap1 = LDAP()
-        basedn = "uid=adamhl,cn=accounts,dc=stanford,dc=edu"
-        results = ldap1.dn_search(basedn)
+        basedn =    'dc=stanford,dc=edu'
+        filterstr = 'uid=adamhl'
+        results = ldap1.search(basedn, filterstr=filterstr)
         print(results)
 
 if __name__ == '__main__':
