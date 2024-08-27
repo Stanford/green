@@ -238,7 +238,8 @@ class ApiAccessTokenEndpoint():
     :param client_secret: the OAuth client's secret (i.e., password)
     :type client_secret: str
 
-    :param exp_backoff: an ``ExponentialBackoff`` object used for retrying access token retrieval.
+    :param exp_backoff: an `ExponentialBackoff <exponential-backoff-ca_>`_
+      object used for retrying access token retrieval.
     :type exp_backoff: ExponentialBackoff
 
     :param timeout: the maximum time in seconds to wait for each request attempt; default: 15.0.

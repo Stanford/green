@@ -79,6 +79,15 @@ information (this assumes you have a valid Kerberos context):</p>
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAP">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">LDAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ldap.stanford.edu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_on_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.ldap.LDAP" title="Link to this definition">¶</a></dt>
 <dd><p>The LDAP class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>host</strong> – the LDAP host name, defaults to <code class="docutils literal notranslate"><span class="pre">ldap.stanford.edu</span></code></p></li>
+<li><p><strong>connect_on_init</strong> – set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to connect <code class="docutils literal notranslate"><span class="pre">host</span></code> on object
+creation, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise, defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAP.connect">
 <span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.connect" title="Link to this definition">¶</a></dt>
