@@ -190,7 +190,8 @@ currently recognized:</p>
 we go to get the access token.</p></li>
 <li><p><strong>client_id</strong> (<em>str</em>) – the OAuth client’s identifier</p></li>
 <li><p><strong>client_secret</strong> (<em>str</em>) – the OAuth client’s secret (i.e., password)</p></li>
-<li><p><strong>exp_backoff</strong> (<em>ExponentialBackoff</em>) – an <code class="docutils literal notranslate"><span class="pre">ExponentialBackoff</span></code> object used for retrying access token retrieval.</p></li>
+<li><p><strong>exp_backoff</strong> (<em>ExponentialBackoff</em>) – an <a class="reference external" href="https://github.com/macrotex/python-exponential-backoff-ca">ExponentialBackoff</a>
+object used for retrying access token retrieval.</p></li>
 <li><p><strong>timeout</strong> (<em>float</em>) – the maximum time in seconds to wait for each request attempt; default: 15.0.</p></li>
 <li><p><strong>use_cache</strong> (<em>bool</em>) – if set to <code class="docutils literal notranslate"><span class="pre">True</span></code> the access token will be cached; default: <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – if set to <code class="docutils literal notranslate"><span class="pre">True</span></code> progress information will be sent to standard output; default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>

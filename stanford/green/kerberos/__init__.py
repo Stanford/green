@@ -19,10 +19,16 @@ Simple example::
 
   from stanford.green.kerberos import KerberosTicket
 
+  keytab_path = "/etc/krb5.keytab"
+  principal   = "host/myserver.stanford.edu@stanford.edu"
+
   kt = KerberosTicket(keytab_path, principal, age_limit_seconds=30)
   kt.create_ticket_file()
   # You now have a valid Kerberos context with the Kerberos ticket
   # file pointed to by the KRB5CCNAME environment variable.
+
+  # Clean up the ticket file:
+  kt.cleanup()
 """
 
 import os
@@ -68,7 +74,7 @@ class KerberosTicket():
         self.age_limit_seconds = age_limit_seconds
 
     def cleanup(self) -> None:
-        """Remove the kerberos ticket and lock files."""
+        """Remove the Kerberos ticket and lock files."""
         if (os.path.exists(self.ticket_file)):
             os.remove(self.ticket_file)
 
@@ -97,7 +103,8 @@ class KerberosTicket():
           * it does not already exist;
           * it *does* exist but is empty;
           * it *does* exist but is too old. The ticket file is too old if
-            the current ticket file is more than ``self.age_limit_seconds`` old.
+            the current ticket file is more than ``self.age_limit_seconds``
+            seconds old.
         """
         if (not os.path.isfile(self.ticket_file)):
             # The ticket file does not exist, so it definitely needs updating.
@@ -127,14 +134,14 @@ class KerberosTicket():
         The path to the ticket file comes from ``self.keytab_path``.
 
         This method only creates the ticket file if it can acquire the
-        ticket lock file. Given that creating a Kerberos ticket file takes less
-        than a second (under normal circumstances), putting a 10-second
-        timeout on acquiring the lock file is more than sufficient.
-
+        ticket lock file.
         """
         # Does this ticket file need updating at all?
         if (self.ticket_file_needs_updating()):
             # Yes, it needs updating. So acquire the lock and update.
+            # Given that creating a Kerberos ticket file takes less
+            # than a second (under normal circumstances), putting a 10-second
+            # timeout on acquiring the lock file is more than sufficient.
             with FileLock(self.ticket_lock_file, timeout=10):
                 self.debug("acquired Kerberos ticket lock file")
                 cmd = ['kinit', '-k', '-t', self.keytab_path, '-c', self.ticket_file, self.kprincipal]

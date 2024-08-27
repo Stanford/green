@@ -457,6 +457,14 @@ def attribute_is_multi_valued(attribute_name: str) -> bool:
 
 class LDAP():
     """The LDAP class.
+
+    :param host: the LDAP host name, defaults to ``ldap.stanford.edu``
+    :type prefix: str
+
+    :param connect_on_init: set to ``True`` to connect ``host`` on object
+      creation, ``False`` otherwise, defaults to ``True``.
+    :type prefix: bool
+
     """
 
     def __init__(self,
