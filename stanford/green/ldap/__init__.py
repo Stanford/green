@@ -580,7 +580,7 @@ class LDAP():
         converts these byte-strings into regular utf8 strings.
 
         If no results are returned this method raises the
-        `LDAPNoResultsException` exception.
+        `GreenLDAPNoResultsException` exception.
 
         """
         search_scope  = self.scope_normalize(scope)
