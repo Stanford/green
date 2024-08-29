@@ -11,6 +11,8 @@ Use stanford.green.kerberos to provision and maintain a Kerberos ticket
 cache. Uses the `filelock <filelock_>`_ Python package to avoid two
 instances attempting to write to the same ticket cache at the same time.
 
+The `kinit` executable must be installed for this package to work.
+
 --------
 Examples
 --------
