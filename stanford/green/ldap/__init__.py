@@ -8,6 +8,13 @@ LDAP functions useful for Stanford-based applications. Currently the
 only authentication method supported when connecting to an LDAP server is GSSAPI
 (Kerberos).
 
+When connecting to an LDAP using Kerberos/GSSAPI credentials the necessary
+SASL libraries must be installed. For Debian bookworm these are:
+```
+libsasl2-dev
+libsasl2-modules-gssapi-mit
+```
+
 --------
 Examples
 --------
