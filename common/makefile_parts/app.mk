@@ -18,3 +18,9 @@ mypy:  ## Run Python static type-checker mypy
 	&& cd .. \
 	&& mypy --strict-equality --allow-subclassing-any --allow-any-generics --strict stanford/
 
+.PHONY: pylint
+pylint:  ## Run Python linter pylint
+	@source ${BUILD_DIR}/venv/bin/activate \
+	&& cd .. \
+	&& pylint stanford/green
+

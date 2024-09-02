@@ -4,8 +4,9 @@
 # pylint: disable=superfluous-parens,invalid-name
 
 import datetime
-import pytz
 import random
+
+import pytz
 
 ## TYPING
 from typing import Dict, Any, Optional  # pylint: disable=wrong-import-order
@@ -95,5 +96,3 @@ def utc_datetime_secs_from_now(secs: int) -> datetime.datetime:
     """
     current_time = datetime.datetime.now(pytz.utc)
     return current_time + datetime.timedelta(seconds=secs)
-    
-

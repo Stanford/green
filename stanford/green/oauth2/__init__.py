@@ -87,27 +87,32 @@ To connect to an ACS-style API endpoint you use much the same code as above::
   # This token can now be used with the API to do other operations.
 
 """
+# pylint: disable=superfluous-parens
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
+
 import base64
 import datetime
 import hashlib
 import logging
-import pytz
 import random
+import time
+
 import requests
 from requests.exceptions import HTTPError
-import time
 
 # diskcache does not have type hint support, so tell the type checker to
 # ignore it.
 from diskcache import Cache   # type: ignore
 
 from exponential_backoff_ca import ExponentialBackoff
+import pytz
 
 from stanford.green          import utc_datetime_secs_from_now
 from stanford.green.zulutime import dt_to_zulu_string, zulu_string_to_utc
 
 ## TYPING
-from typing import Optional, cast, Any
+from typing import Optional, cast, Any  # pylint: disable=wrong-import-order
 AccessTokenDict = dict[str, str|int|datetime.datetime]
 ## END OF TYPING
 
@@ -210,10 +215,11 @@ class AccessToken():
         """
         if (self.expires_at is None):
             return True
-        elif (self.expires_at < datetime.datetime.now(tz=datetime.timezone.utc)):
+
+        if (self.expires_at < datetime.datetime.now(tz=datetime.timezone.utc)):
             return True
-        else:
-            return False
+
+        return False
 
 
 class ApiAccessTokenEndpoint():
@@ -248,7 +254,8 @@ class ApiAccessTokenEndpoint():
     :param use_cache: if set to ``True`` the access token will be cached; default: ``True``.
     :type use_cache: bool
 
-    :param verbose: if set to ``True`` progress information will be sent to standard output; default: ``False``.
+    :param verbose: if set to ``True`` progress information will be sent to
+      standard output; default: ``False``.
     :type verbose: bool
 
     :param grant_type: (only relevant if endpoint type is "oauth2") the OAuth grant type;
@@ -279,8 +286,8 @@ class ApiAccessTokenEndpoint():
         if (endpoint_type not in valid_endpoints):
             msg = f"unrecognized endpont type: '{endpoint_type}'"
             raise ValueError(msg)
-        else:
-            self.endpoint_type = endpoint_type
+
+        self.endpoint_type = endpoint_type
 
         self.url           = url
         self.client_id     = client_id
@@ -300,9 +307,9 @@ class ApiAccessTokenEndpoint():
         if (self.use_cache):
             # We set the cache_key to be the SHA256 hash of the url. This way
             # we avoid reading anyone else's cache.
-            m = hashlib.sha256()
-            m.update(url.encode('ascii'))
-            self.cache_key = 'access_token_' + m.hexdigest()
+            hasher = hashlib.sha256()
+            hasher.update(url.encode('ascii'))
+            self.cache_key = 'access_token_' + hasher.hexdigest()
             self.cache     = Cache()  # Cache the access token
 
         self.logger = logging.getLogger(__name__)
@@ -399,9 +406,9 @@ class ApiAccessTokenEndpoint():
                 # Cache this value.
                 self.cache_set(access_token, expires_in=access_token.expires_in())
                 return access_token
-            else:
-                self.progress("cache HIT")
-                return access_token_cached
+
+            self.progress("cache HIT")
+            return access_token_cached
 
     def _get_token(self) -> AccessToken:
         """Get the access token from the token endpoint.
@@ -411,11 +418,12 @@ class ApiAccessTokenEndpoint():
         """
         if (self.is_acs_api()):
             return self._get_token_acs_api()
-        elif (self.is_oauth2()):
+
+        if (self.is_oauth2()):
             return self._get_token_oauth2()
-        else:
-            msg = "programming error?!?"
-            raise RuntimeError(msg)
+
+        msg = "programming error?!?"
+        raise RuntimeError(msg)
 
     def _get_token_response(
             self,
@@ -475,10 +483,10 @@ class ApiAccessTokenEndpoint():
         # After all of that, did we actually get an access token?
         if (success):
             return response
-        else:
-            msg = f"token request failed; last error message: {last_error_msg}"
-            self.logger.error(msg)
-            raise HTTPError(msg)
+
+        msg = f"token request failed; last error message: {last_error_msg}"
+        self.logger.error(msg)
+        raise HTTPError(msg)
 
     def _get_token_acs_api(self) -> AccessToken:
         """Get an access token from an ACS-API compatible token endpoint (no caching)
@@ -522,10 +530,10 @@ class ApiAccessTokenEndpoint():
 
             access_token = AccessToken(token, expires_at)
             return access_token
-        else:
-            msg = 'got a 200 response but could not find access token in data'
-            self.logger.error(msg)
-            raise KeyError(msg)
+
+        msg = 'got a 200 response but could not find access token in data'
+        self.logger.error(msg)
+        raise KeyError(msg)
 
     def _get_token_oauth2(self) -> AccessToken:
         """Get an access token from an OAuth2 endpoint (no caching)
@@ -590,7 +598,7 @@ class ApiAccessTokenEndpoint():
         if (token is None):
             msg = "token is empty"
             raise RuntimeError(msg)
-        else:
-            access_token = AccessToken(token, expires_at)
+
+        access_token = AccessToken(token, expires_at)
 
         return access_token

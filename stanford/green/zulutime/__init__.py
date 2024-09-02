@@ -1,6 +1,7 @@
 """
 Functions related to "Zulu" time; see also https://www.w3.org/TR/NOTE-datetime.
 """
+# pylint: disable=superfluous-parens
 
 import re
 import datetime
@@ -30,8 +31,8 @@ def is_zulu_string(zulu_str: str) -> bool:
     regex = r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:[.]\d+)?Z$'
     if (re.match(regex, zulu_str) is None):  # pylint: disable=simplifiable-if-statement
         return False
-    else:
-        return True
+
+    return True
 
 def zulu_string_to_utc(zulu_str: str) -> datetime.datetime:
     """Convert zulu_str to a UTC offset aware datetime object.

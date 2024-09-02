@@ -1,4 +1,9 @@
+"""Miscellaneous and utility functions
+
+"""
 import subprocess
+
+# pylint: disable=superfluous-parens
 
 ## TYPING
 from typing import Tuple, List  # pylint: disable=wrong-import-order

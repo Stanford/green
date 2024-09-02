@@ -32,6 +32,8 @@ Simple example::
   # Clean up the ticket file:
   kt.cleanup()
 """
+# pylint: disable=superfluous-parens
+# pylint: disable=too-many-arguments
 
 import os
 import time
@@ -40,7 +42,7 @@ from filelock import FileLock
 from stanford.green.utility import run_command
 
 ## TYPING
-from typing import Any, Optional
+from typing import Any, Optional  # pylint: disable=wrong-import-order
 ## END OF TYPING
 
 class KerberosTicket():
@@ -84,6 +86,7 @@ class KerberosTicket():
             os.remove(self.ticket_lock_file)
 
     def debug(self, msg: str) -> None:
+        """If in verbose mode print out this debug message."""
         if (self.verbose):
             print(f"debug: {msg}")
 
@@ -91,10 +94,12 @@ class KerberosTicket():
     # Getters and setters
     @property
     def verbose(self) -> bool:
+        """Return the verbose setting."""
         return self._verbose
 
     @verbose.setter
     def verbose(self, value: bool) -> None:
+        """Set the verbose attribute."""
         self._verbose = value
     ####################################################################################
 
@@ -121,10 +126,7 @@ class KerberosTicket():
         age_seconds = time.time() - modify_time_epoch
         self.debug(f"age of ticket file is {age_seconds} seconds")
 
-        if (age_seconds > self.age_limit_seconds):
-            return True
-        else:
-            return False
+        return (age_seconds > self.age_limit_seconds)
 
     def create_ticket_file(self) -> None:
         """Create/update the Kerberos ticket file (if needed).
@@ -146,11 +148,17 @@ class KerberosTicket():
             # timeout on acquiring the lock file is more than sufficient.
             with FileLock(self.ticket_lock_file, timeout=10):
                 self.debug("acquired Kerberos ticket lock file")
-                cmd = ['kinit', '-k', '-t', self.keytab_path, '-c', self.ticket_file, self.kprincipal]
+                cmd = [
+                    'kinit',
+                    '-k', '
+                    -t', self.keytab_path,
+                    '-c', self.ticket_file,
+                    self.kprincipal
+                ]
                 _, stderr, _ = run_command(cmd)
 
                 if (stderr):
-                    raise Exception(f"error obtaining a Kerberos ticket: {stderr}")
+                    raise RuntimeError(f"error obtaining a Kerberos ticket: {stderr}")
             self.debug(f"Kerberos lock file should now be released")
         else:
             self.debug("Kerberos ticket file is not old enough to need updating")

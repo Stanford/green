@@ -1,4 +1,4 @@
-"""Useful LDAP functions.
+"""Useful LDAP functions.11
 
 --------
 Overview
@@ -33,18 +33,53 @@ information (this assumes you have a valid Kerberos context)::
   from stanford.green.ldap import LDAP
 
   ldap1 = LDAP()
-  results = ldap1.sunetid_account_info('jstanford')  # Get account tree LDAP information for user 'jstanford'
-  results = ldap1.sunetid_people_info('jstanford')   # Get people tree LDAP information for user 'jstanford'
-  results = ldap1.sunetid_info('jstanford')          # Get BOTH account and people tree LDAP information for user 'jstanford'
+
+  # Get account tree LDAP information for user 'jstanford':
+  results = ldap1.sunetid_account_info('jstanford')
+
+  # Get people tree LDAP information for user 'jstanford':
+  results = ldap1.sunetid_people_info('jstanford')
+
+  # Get BOTH account and people tree LDAP information for user 'jstanford':
+  results = ldap1.sunetid_info('jstanford')
 
 """
+# pylint: disable=invalid-name  (we want to allow the variable named "dn")
+# pylint: disable=superfluous-parens
+
 import logging
 import ldap      # type: ignore
 import ldap.sasl # type: ignore
 
 ## TYPING
-from typing import Optional, Any, Tuple
-LDAPResult = dict[str, dict[str, str|list[str]]]
+from typing import Optional, Any, Tuple  # pylint: disable=wrong-import-order
+## END OF TYPING
+
+"""
+An LDAPValueDict represents a set of attributes read from
+LDAP. Attributes can be single-valued or multi-valued, hence
+"str|list[str]".
+"""
+LDAPAttributeDict = dict[str, str|list[str]]
+
+"""
+An LDAPResult is a result that maps DNs to LDAPAttributeDicts.
+
+Example of an LDAPResult
+{
+  'uid=jstanford,cn=accounts,dc=stanford,dc=edu':
+    {
+      'suLelandStatus': 'active',
+      'gidNumber': '37',
+    },
+  'suRegID=3f4a9c2e1b8f0d6afa3b5c0e1d2a6f8c,cn=people,dc=stanford,dc=edu':
+    {
+      'displayName': 'Jane Stanford',
+      'sn': 'Stanford',
+    },}
+
+"""
+LDAPResult = dict[str, LDAPAttributeDict]
 ## END OF TYPING
 
 ## Set up logging
@@ -296,6 +331,8 @@ PEOPLE_ATTRIBUTE_TO_MULTIPLICITY = {
     'title': 'single',
     'uid': 'single',
     'userid': 'single',
+    'suPrimaryOrganizationIDL2': 'single',
+    'suPrimaryOrganizationNameL2': 'single',
 }
 
 # Add in the suGAL attributes. These attributes have the same multiplicty
@@ -343,7 +380,8 @@ SUGAL_BASE_ATTRIBUTES = {
 
 SUGAL_ATTRIBUTE_TO_MULTIPLICITY = {}
 for attribute_name in SUGAL_BASE_ATTRIBUTES:
-    SUGAL_ATTRIBUTE_TO_MULTIPLICITY[f"suGAL{attribute_name}"] = PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attribute_name]
+    SUGAL_ATTRIBUTE_TO_MULTIPLICITY[f"suGAL{attribute_name}"] = \
+        PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attribute_name]
 
 PEOPLE_ATTRIBUTE_TO_MULTIPLICITY_EXTRA = {
     'dn': 'single',
@@ -387,9 +425,9 @@ def account_attribute_is_single_valued(attribute_name: str) -> bool:
     """
     if (attribute_name in ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY):
         return (ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
-    else:
-        msg = f"'{attribute_name}' is not an account-tree attribute"
-        raise GreenUnknownLDAPAttribute(msg)
+
+    msg = f"'{attribute_name}' is not an account-tree attribute"
+    raise GreenUnknownLDAPAttribute(msg)
 
 def account_attribute_is_multi_valued(attribute_name: str) -> bool:
     """Return True if `attribute_name` is multi-valued account-tree, False otherwise.
@@ -417,9 +455,9 @@ def people_attribute_is_single_valued(attribute_name: str) -> bool:
     """
     if (attribute_name in PEOPLE_ATTRIBUTE_TO_MULTIPLICITY):
         return (PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
-    else:
-        msg = f"'{attribute_name}' is not a people-tree attribute"
-        raise GreenUnknownLDAPAttribute(msg)
+
+    msg = f"'{attribute_name}' is not a people-tree attribute"
+    raise GreenUnknownLDAPAttribute(msg)
 
 def people_attribute_is_multi_valued(attribute_name: str) -> bool:
     """Return True if `attribute_name` is single-valued, False otherwise.
@@ -446,9 +484,9 @@ def attribute_is_single_valued(attribute_name: str) -> bool:
 
     if (attribute_name in ATTRIBUTE_TO_MULTIPLICITY):
         return (ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
-    else:
-        msg = f"'{attribute_name}' is not a recognized attribute"
-        raise GreenUnknownLDAPAttribute(msg)
+
+    msg = f"'{attribute_name}' is not a recognized attribute"
+    raise GreenUnknownLDAPAttribute(msg)
 
 def attribute_is_multi_valued(attribute_name: str) -> bool:
     """Return True if `attribute_name` is multi-valued, False otherwise.
@@ -497,10 +535,11 @@ class LDAP():
         return ldap_conn
 
     def scope_normalize(self, scope: str) -> Any:
+        """Return the ldap-package's version of the scope based on the passed in string."""
         scopes = {
-            'sub':  ldap.SCOPE_SUBTREE,
-            'base': ldap.SCOPE_BASE,
-            'one':  ldap.SCOPE_ONELEVEL,
+            'sub':  ldap.SCOPE_SUBTREE,   # pylint: disable=no-member
+            'base': ldap.SCOPE_BASE,      # pylint: disable=no-member
+            'one':  ldap.SCOPE_ONELEVEL,  # pylint: disable=no-member
         }
 
         # Add some aliases
@@ -509,8 +548,13 @@ class LDAP():
 
         return scopes[scope]
 
+    def process_result(
+            self,
+            result: Tuple[str, dict[str, list[Any]]]
+    ) -> Tuple[str, LDAPAttributeDict]:
+        """Normalize an LDAP result including converting arrays into strings.
+        """
 
-    def process_result(self, result: Tuple[str, dict[str, list[Any]]]) -> Tuple[str, LDAPResult]:
         dn     = result[0]
         logger.info(f"dn is {dn}")
 
@@ -544,7 +588,7 @@ class LDAP():
             filterstr: str='(objectClass=*)',
             attrlist:  Optional[list[str]]=None,
             scope:     str='sub'
-    ) -> dict[str, LDAPResult]:
+    ) -> LDAPResult:
         """Perform an LDAP search.
 
         :param basedn: base DN on which to search
@@ -579,7 +623,8 @@ class LDAP():
           #     { 'uid': 'jstanford', 'suSeasSunetID': ['jstanford', 'jane.stanford'], ... }
           # }
           #
-          # There are two keys in the above: the "suRegID=f0..." one and the "uid=jstanford,..." one.
+          # There are two keys in the above: the "suRegID=f0..." one
+          # and the "uid=jstanford,..." one.
 
         Note that the attributes are returned as either a string (for
         single-valued attributes) or a list (for multi-valued attributes).
@@ -611,12 +656,12 @@ class LDAP():
         while not end_of_results:
             try:
                 result_type, result_data = self.ldap.result(ldap_result_id, 0)
-            except ldap.NO_SUCH_OBJECT as _:
+            except ldap.NO_SUCH_OBJECT as _:    # pylint: disable=no-member
                 # No dn found, so nothing to add.
                 logger.error("no such object")
                 pass
             else:
-                if result_type == ldap.RES_SEARCH_ENTRY:
+                if result_type == ldap.RES_SEARCH_ENTRY:  # pylint: disable=no-member
                     logger.debug("found an LDAP entry")
                     results.append(result_data)
                 else:
@@ -630,7 +675,7 @@ class LDAP():
             raise GreenLDAPNoResultsException(msg)
 
         # Process the results
-        result_set = {}
+        result_set: LDAPResult = {}
         for result in results:
             # The result will be of the form [(dn, {attributes})]
             (dn, attribute_values) = self.process_result(result[0])
@@ -638,7 +683,7 @@ class LDAP():
 
         return result_set
 
-    def sunetid_account_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> dict[str, LDAPResult]:
+    def sunetid_account_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> LDAPResult:
         """Return the account tree information for user with uid equal to ``sunetid``.
 
         :param sunetid: sunetid of user whose information you seek
@@ -670,7 +715,7 @@ class LDAP():
         filterstr = f"uid={sunetid}"
         return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
 
-    def sunetid_people_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> dict[str, LDAPResult]:
+    def sunetid_people_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> LDAPResult:
         """Return the people tree information for user with uid equal to ``sunetid``.
 
         :param sunetid: sunetid of user whose information you seek
@@ -702,7 +747,7 @@ class LDAP():
         filterstr = f"uid={sunetid}"
         return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
 
-    def sunetid_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> dict[str, LDAPResult]:
+    def sunetid_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> LDAPResult:
         """Return the people and accounts tree information for user with uid equal to ``sunetid``.
 
         :param sunetid: sunetid of user whose information you seek
@@ -735,4 +780,3 @@ class LDAP():
         basedn    = BASEDN
         filterstr = f"uid={sunetid}"
         return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
-
