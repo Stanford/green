@@ -150,8 +150,8 @@ class KerberosTicket():
                 self.debug("acquired Kerberos ticket lock file")
                 cmd = [
                     'kinit',
-                    '-k', '
-                    -t', self.keytab_path,
+                    '-k',
+                    '-t', self.keytab_path,
                     '-c', self.ticket_file,
                     self.kprincipal
                 ]
