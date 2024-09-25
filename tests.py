@@ -6,6 +6,7 @@ import datetime
 import logging
 import pytz
 import sys
+import time
 
 from stanford.green import random_uid
 
@@ -18,6 +19,8 @@ from stanford.green.ldap import account_attribute_is_multi_valued
 from stanford.green.ldap import people_attribute_is_single_valued
 from stanford.green.ldap import people_attribute_is_multi_valued
 from stanford.green.ldap import LDAP
+
+from stanford.green.mais_apis.workgroup import WorkgroupAPI
 
 ## Logging
 logger = logging.getLogger(__name__)
@@ -310,6 +313,66 @@ class TestGreen(unittest.TestCase):
 
         results = ldap1.sunetid_info('adamhl', attrlist=['suMailDrop', 'displayName'])
         print(results)
+
+class TestGreenWorkgroupAPI(unittest.TestCase):
+
+    BASE_URL  = 'https://aswsuat.stanford.edu/mais/workgroupsvc/workgroups/2.0'
+    CERT_PATH = 'wg-api.crt'
+    KEY_PATH  = 'wg-api.key'
+
+    def test_list_members_and_admins(self):
+        workgroup_name = 'kilroy:api-testing'
+        wg_api = WorkgroupAPI(
+            base_url=TestGreenWorkgroupAPI.BASE_URL,
+            cert_path=TestGreenWorkgroupAPI.CERT_PATH,
+            key_path=TestGreenWorkgroupAPI.KEY_PATH,
+            name=workgroup_name
+        )
+
+        str_representation = str(wg_api)
+        self.assertIn(workgroup_name, str_representation)
+        self.assertIn(TestGreenWorkgroupAPI.BASE_URL, str_representation)
+
+        members = wg_api.list_members()
+
+        # Remove all the members:
+        for member in members:
+            print(f"removing member {member}")
+            wg_api.remove_user(member)
+
+        # Wait until the removals have settled.
+        for i in range(8):
+            members = wg_api.list_members()
+            if (len(members) == 0):
+                # We are done.
+                break
+            # Skeep a bit before trying again.
+            print(f"sleeping a bit to give removals a chance to settle")
+            time.sleep(5.0)
+        # ###        # ###        # ###        # ###        # ###        # ###
+
+        members = wg_api.list_members()
+        self.assertEqual(members, [], "there should be no members right now")
+
+        # Add some members
+        members_to_add = ['jholder']
+        for member in members_to_add:
+            print(f"adding member {member}")
+            print(f"AAAAA {wg_api.add_user(member)}")
+
+        # Wait until the adds have settled.
+        for i in range(8):
+            members = wg_api.list_members()
+            if (len(members) == len(members_to_add)):
+                # We are done.
+                break
+            # Skeep a bit before trying again.
+            print(f"sleeping a bit to give adds a chance to settle")
+            time.sleep(5.0)
+
+        members = wg_api.list_members()
+        self.assertEqual(len(members), len(members_to_add))
+
 
 if __name__ == '__main__':
     unittest.main()
