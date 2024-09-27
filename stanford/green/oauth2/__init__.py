@@ -462,7 +462,7 @@ class ApiAccessTokenEndpoint():
             if (status_code is not None):
                 msg = f"when retrieving access token got response code {response.status_code}"
             else:
-                msg = f"error retrieving access token: {error_msg}"
+                msg = f"error retrieving access token (no status code): {error_msg}"
 
             last_error_msg = msg
             msg = f"{msg} (attempt {self.exp_backoff.counter})"

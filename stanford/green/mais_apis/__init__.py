@@ -31,59 +31,36 @@ class MaIS_API():
         """Concatenate the base_url with the url_suffix"""
         return f"{self.base_url}/{url_suffix}"
 
-    def GET(self, url_suffix: str) -> requests.Response:
-        """Do a GET on the URL suffix."""
+    def make_request(self, method: str, url_suffix: str):
         full_url = self.make_url(url_suffix)
 
-        # We want a JSON response.
-        headers = {'Accept': 'application/json'}
+        # Use a context for session because setting the client certs
+        # outside of a session makes all other HTTP requests use that
+        # client cert.
+        with requests.session() as http_session:
+            http_session.cert = (self.cert_path, self.key_path)
 
-        # Set up the certificate paths
-        keypair_paths = (self.cert_path, self.key_path)
+            # We want a JSON response.
+            headers = {'Accept': 'application/json'}
+            http_session.headers = headers
 
-        response = requests.get(
-            full_url,
-            cert=keypair_paths,
-            headers=headers,
-            timeout=self.timeout
-        )
-        return response
+            response = http_session.request(
+                method,
+                full_url,
+                timeout=self.timeout
+            )
+
+            return response
+
+    def GET(self, url_suffix: str) -> requests.Response:
+        """Do a GET on the URL suffix."""
+        return self.make_request('GET', url_suffix)
 
     def PUT(self, url_suffix: str) -> requests.Response:
         """Do a PUT on the URL suffix."""
-        full_url = self.make_url(url_suffix)
-
-        # We want a JSON response.
-        headers = {'Accept': 'application/json'}
-
-        # Set up the certificate paths
-        keypair_paths = (self.cert_path, self.key_path)
-
-        response = requests.put(
-            full_url,
-            cert=keypair_paths,
-            headers=headers,
-            timeout=self.timeout
-        )
-
-        return response
+        return self.make_request('PUT', url_suffix)
 
     def DELETE(self, url_suffix: str) -> requests.Response:
         """Do a DELETE on the URL suffix."""
-        full_url = self.make_url(url_suffix)
-
-        # We want a JSON response.
-        headers = {'Accept': 'application/json'}
-
-        # Set up the certificate paths
-        keypair_paths = (self.cert_path, self.key_path)
-
-        response = requests.delete(
-            full_url,
-            cert=keypair_paths,
-            headers=headers,
-            timeout=self.timeout
-        )
-
-        return response
+        return self.make_request('DELETE', url_suffix)
 
