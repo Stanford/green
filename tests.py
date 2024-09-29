@@ -28,6 +28,7 @@ from stanford.green.mais_apis.workgroup import WorkgroupAPI
 
 ## Logging
 logger = logging.getLogger(__name__)
+#logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 ### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #
@@ -342,7 +343,9 @@ class TestGreenWorkgroupAPI(unittest.TestCase):
     KEY_PATH  = 'wg-api.key'
 
     def test_list_members_and_admins(self):
-        workgroup_name = 'kilroy:api-testing'
+        Config = read_test_config()
+        workgroup_name = Config['workgroup_api']['workgroup_name']
+
         wg_api = WorkgroupAPI(
             base_url=TestGreenWorkgroupAPI.BASE_URL,
             cert_path=TestGreenWorkgroupAPI.CERT_PATH,
@@ -379,16 +382,17 @@ class TestGreenWorkgroupAPI(unittest.TestCase):
         members_to_add = ['jholder']
         for member in members_to_add:
             print(f"adding member {member}")
+            wg_api.add_user(member)
 
         # Wait until the adds have settled.
-        for i in range(8):
+        for i in range(15):
             members = wg_api.list_members()
             if (len(members) == len(members_to_add)):
                 # We are done.
                 break
             # Sleep a bit before trying again.
             print(f"sleeping a bit to give adds a chance to settle")
-            time.sleep(5.0)
+            time.sleep(7.0)
 
         members = wg_api.list_members()
         self.assertEqual(len(members), len(members_to_add))

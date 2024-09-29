@@ -254,10 +254,6 @@ class ApiAccessTokenEndpoint():
     :param use_cache: if set to ``True`` the access token will be cached; default: ``True``.
     :type use_cache: bool
 
-    :param verbose: if set to ``True`` progress information will be sent to
-      standard output; default: ``False``.
-    :type verbose: bool
-
     :param grant_type: (only relevant if endpoint type is "oauth2") the OAuth grant type;
       default: "client_credentials"
     :type grant_type: str
@@ -322,13 +318,6 @@ class ApiAccessTokenEndpoint():
 
         self.logger = logging.getLogger(__name__)
 
-    def progress(self, msg: str) -> None:
-        """Show a progress message"""
-        self.logger.debug(msg)
-        if (self.verbose):
-            now = datetime.datetime.now()
-            print(f"[progress] {now} {msg}")
-
     def is_acs_api(self) -> bool:
         """
         :return: ``True`` if ``self.endpoint_type`` is set to "acs_api", ``False`` otherwise.
@@ -360,7 +349,7 @@ class ApiAccessTokenEndpoint():
         Note: this method only relevant if ``self.use_cache`` is ``True``.
 
         """
-        self.progress('entering cache_set()')
+        self.logger.debug('entering cache_set()')
 
         # We subtract 5 seconds from expires_in to avoid a situation where
         # the current time is so close to the expires time that we return a
@@ -374,7 +363,7 @@ class ApiAccessTokenEndpoint():
         :rtype: ``AccessToken``
 
         """
-        self.progress('entering cache_get()')
+        self.logger.debug('entering cache_get()')
         return cast(AccessToken, self.cache.get(self.cache_key))
 
     def get_token(self,
@@ -399,13 +388,13 @@ class ApiAccessTokenEndpoint():
         """
         if (not self.use_cache):
             msg = "not using cache as the use_cache propery is True"
-            self.progress(msg)
+            self.logger.debug(msg)
             return self._get_token()
 
         with Cache(self.cache.directory) as _:
             access_token_cached = self.cache_get()
             if (access_token_cached is None):
-                self.progress('cache MISS')
+                self.logger.debug('cache MISS')
                 access_token = self._get_token()
 
                 if (expires_at_override is not None):
@@ -415,7 +404,7 @@ class ApiAccessTokenEndpoint():
                 self.cache_set(access_token, expires_in=access_token.expires_in())
                 return access_token
 
-            self.progress("cache HIT")
+            self.logger.debug("cache HIT")
             return access_token_cached
 
     def _get_token(self) -> AccessToken:
@@ -568,7 +557,7 @@ class ApiAccessTokenEndpoint():
 
         Returns a dict.
         """
-        self.progress("entering _get_token_response_data")
+        self.logger.debug("entering _get_token_response_data")
 
         last_error_message = None
         for wait_seconds in self.exp_backoff:
@@ -593,7 +582,7 @@ class ApiAccessTokenEndpoint():
                 success = (status_code == 200)
 
             if (success):
-                self.progress("get token request came back with some data")
+                self.logger.debug("get token request came back with some data")
                 break
 
             # If we get here we were not successful. So, we try again.
@@ -604,17 +593,15 @@ class ApiAccessTokenEndpoint():
 
             last_error_message = msg
             msg = f"{msg} (attempt {self.exp_backoff.counter})"
-            self.progress(msg)
+            self.logger.debug(msg)
 
             # Was this the last try? If not, sleep
             if (self.exp_backoff.counter == self.exp_backoff.number_of_iterations):
                 msg = "this was the last attempt; giving up"
-                self.progress(msg)
                 self.logger.error(msg)
             else:
                 # Sleep a bit before retrying.
                 msg = f"will sleep for {wait_seconds} seconds before trying again"
-                self.progress(msg)
                 self.logger.info(msg)
                 time.sleep(wait_seconds)
 
@@ -645,7 +632,7 @@ class ApiAccessTokenEndpoint():
         the response's expires_in value.
 
         """
-        self.progress("entering get_token_acs_api")
+        self.logger.debug("entering get_token_acs_api")
 
         url = self.url
 
@@ -682,7 +669,7 @@ class ApiAccessTokenEndpoint():
           generated until it expires.
 
         """
-        self.progress("entering get_token_oauth2")
+        self.logger.debug("entering get_token_oauth2")
 
         url = self.url
 
