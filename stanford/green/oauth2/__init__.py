@@ -94,9 +94,11 @@ To connect to an ACS-style API endpoint you use much the same code as above::
 import base64
 import datetime
 import hashlib
+import json
 import logging
 import random
 import time
+import urllib
 
 import requests
 from requests.exceptions import HTTPError
@@ -112,7 +114,7 @@ from stanford.green          import utc_datetime_secs_from_now
 from stanford.green.zulutime import dt_to_zulu_string, zulu_string_to_utc
 
 ## TYPING
-from typing import Optional, cast, Any  # pylint: disable=wrong-import-order
+from typing import Optional, cast, Any, Tuple  # pylint: disable=wrong-import-order
 AccessTokenDict = dict[str, str|int|datetime.datetime]
 ## END OF TYPING
 
@@ -178,9 +180,7 @@ class AccessToken():
         return dt_to_zulu_string(self.expires_at)
 
     ### PICKLE CUSTOMIZATION ###
-    """
-    We use this custom pickle to cache an AccessToken.
-    """
+    # We use this custom pickle to cache an AccessToken.
     def __getstate__(self) -> AccessTokenDict:
         values: AccessTokenDict = {}
         values['token']      = self.token
@@ -268,7 +268,7 @@ class ApiAccessTokenEndpoint():
 
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
             self,
             endpoint_type:     str,
             url:               str,
@@ -280,7 +280,9 @@ class ApiAccessTokenEndpoint():
             verbose:           bool=False,
             # OAuth stuff:
             grant_type:        str='client_credentials',
-            scopes:            list[str]=[],
+            scopes:            Optional[list[str]]=None,
+            #
+            use_lib:           str='requests',
     ):
         valid_endpoints = ['acs_api', 'oauth2']
         if (endpoint_type not in valid_endpoints):
@@ -299,8 +301,14 @@ class ApiAccessTokenEndpoint():
         self.verbose   = verbose
 
         # OAuth settings
-        self.scopes     = scopes
+        if (scopes is None):
+            self.scopes: list[str] = []
+        else:
+            self.scopes     = scopes
+
         self.grant_type = grant_type
+
+        self.use_lib    = use_lib  # Use this library (Must be one of 'requests' or 'urllib')
 
         self.base_headers = {'Accept': 'application/json'}
 
@@ -425,13 +433,142 @@ class ApiAccessTokenEndpoint():
         msg = "programming error?!?"
         raise RuntimeError(msg)
 
-    def _get_token_response(
+#    def _get_token_response(
+#            self,
+#            url: str,
+#            headers: dict[str, str],
+#            data: Optional[dict[Any, Any]] = None
+#    ) -> dict[str, Any]:
+#        """Get the token.
+#
+#        Returns a dict with these keys:
+#            - access_token
+#            - expires_at
+#
+#        """
+#        self.progress("entering _get_token_response")
+#
+#        last_error_message = None
+#        for wait_seconds in self.exp_backoff:
+#            # Three possibilities:
+#            # 1. No response at all (bad URL, timeout, etc.)
+#            # 2. Response but not a 200
+#            # 3. Response with a 200
+#
+#            status_code = None
+#            success     = False
+#            error_msg   = None
+#            try:
+#                if (data is None):
+#                    response = requests.get(url, headers=headers, timeout=self.timeout)
+#                else:
+#                    response = requests.post(url, headers=headers, data=data, timeout=self.timeout)
+#            except Exception as excpt:
+#                error_msg = f"error making request: {str(excpt)}"
+#            else:
+#                status_code = response.status_code
+#                success     = (status_code == 200)
+#
+#            if (success):
+#                self.progress(f"get token request came back with some data")
+#                break
+#
+#            # If we get here we were not successful. So, we try again.
+#            if (status_code is not None):
+#                msg = f"when retrieving access token got response code {response.status_code}"
+#            else:
+#                msg = f"error retrieving access token (no status code): {error_msg}"
+#
+#            last_error_msg = msg
+#            msg = f"{msg} (attempt {self.exp_backoff.counter})"
+#            self.progress(msg)
+#
+#            # Was this the last try? If not, sleep
+#            if (self.exp_backoff.counter == self.exp_backoff.number_of_iterations):
+#                msg = f"this was the last attempt; giving up"
+#                self.progress(msg)
+#                self.logger.error(msg)
+#            else:
+#                # Sleep a bit before retrying.
+#                msg = f"will sleep for {wait_seconds} seconds before trying again"
+#                self.progress(msg)
+#                self.logger.info(msg)
+#                time.sleep(wait_seconds)
+#
+#        # After all of that, did we actually get an access token?
+#        if (success):
+#            return response
+#
+#        msg = f"token request failed; last error message: {last_error_msg}"
+#        self.logger.error(msg)
+#        raise HTTPError(msg)
+
+
+    def _make_request(
             self,
             url: str,
             headers: dict[str, str],
             data: Optional[dict[Any, Any]] = None
-    ) -> requests.Response:
-        self.progress("entering _get_token_response")
+    ) -> Tuple[int, dict[str, Any]]:
+        """Make the request and return the data as a dict.
+
+        This method provides the option of using the requests library or the
+        urllib library.
+        """
+        if (self.use_lib == 'requests'):
+            ### Use the "requests" library.
+            self.logger.debug("using http library 'requests'")
+            if (data is None):
+                with requests.get(url, headers=headers,
+                                  timeout=self.timeout) as response:
+                    status_code = response.status_code
+                    response_data = response.json()
+            else:
+                with requests.post(url, headers=headers,
+                                   data=data, timeout=self.timeout) as response:
+                    status_code = response.status_code
+                    response_data = response.json()
+
+            return (status_code, cast(dict[str, Any], response_data))
+
+        if (self.use_lib == 'urllib'):
+            ### Use the "urllib" library.
+            self.logger.debug("using http library 'urllib'")
+            if (data is None):
+                request = urllib.request.Request(url)
+            else:
+                data_encoded = urllib.parse.urlencode(data).encode()
+                request      = urllib.request.Request(url, data=data_encoded)
+
+            # Add headers.
+            for key in headers:
+                value = headers[key]
+                request.add_header(key, value)
+
+            # Make the request and get the response.
+            with urllib.request.urlopen(request) as response:
+                status_code          = response.getcode()
+                response_data_string = response.read().decode()
+
+                # Parse response_data_string as a JSON string.
+                response_data = json.loads(response_data_string)
+
+                return (status_code, response_data)
+
+        msg = "unrecognized value for parameter 'use_lib': {self.use_lib}"
+        raise ValueError(msg)
+
+    def _get_token_response_data(
+            self,
+            url: str,
+            headers: dict[str, str],
+            data: Optional[dict[Any, Any]] = None
+    ) -> dict[str, Any]:
+        """Get the token.
+
+        Returns a dict.
+        """
+        self.progress("entering _get_token_response_data")
 
         last_error_message = None
         for wait_seconds in self.exp_backoff:
@@ -444,33 +581,34 @@ class ApiAccessTokenEndpoint():
             success     = False
             error_msg   = None
             try:
-                if (data is None):
-                    response = requests.get(url, headers=headers, timeout=self.timeout)
-                else:
-                    response = requests.post(url, headers=headers, data=data, timeout=self.timeout)
+                (status_code, response_data) = \
+                  self._make_request(
+                      url,
+                      headers,
+                      data=data,
+                  )
             except Exception as excpt:
                 error_msg = f"error making request: {str(excpt)}"
             else:
-                status_code = response.status_code
-                success     = (status_code == 200)
+                success = (status_code == 200)
 
             if (success):
-                self.progress(f"get token request came back with some data")
+                self.progress("get token request came back with some data")
                 break
 
             # If we get here we were not successful. So, we try again.
             if (status_code is not None):
-                msg = f"when retrieving access token got response code {response.status_code}"
+                msg = f"when retrieving access token got response code {status_code}"
             else:
                 msg = f"error retrieving access token (no status code): {error_msg}"
 
-            last_error_msg = msg
+            last_error_message = msg
             msg = f"{msg} (attempt {self.exp_backoff.counter})"
             self.progress(msg)
 
             # Was this the last try? If not, sleep
             if (self.exp_backoff.counter == self.exp_backoff.number_of_iterations):
-                msg = f"this was the last attempt; giving up"
+                msg = "this was the last attempt; giving up"
                 self.progress(msg)
                 self.logger.error(msg)
             else:
@@ -482,9 +620,9 @@ class ApiAccessTokenEndpoint():
 
         # After all of that, did we actually get an access token?
         if (success):
-            return response
+            return response_data
 
-        msg = f"token request failed; last error message: {last_error_msg}"
+        msg = f"token request failed; last error message: {last_error_message}"
         self.logger.error(msg)
         raise HTTPError(msg)
 
@@ -515,12 +653,11 @@ class ApiAccessTokenEndpoint():
         headers['client-id']     = self.client_id
         headers['client-secret'] = self.client_secret
 
-        response = self._get_token_response(url, headers)
+        response_data = self._get_token_response_data(url, headers)
 
-        data = response.json()
-        if ('access_token' in data):
-            token          = data['access_token']
-            expires_at_str = data['expires_at']
+        if ('access_token' in response_data):
+            token          = response_data['access_token']
+            expires_at_str = response_data['expires_at']
 
             # expires_at_str should be in "Zulu" time format, i.e.,
             # '2014-12-10T12:00:00Z'
@@ -531,7 +668,7 @@ class ApiAccessTokenEndpoint():
             access_token = AccessToken(token, expires_at)
             return access_token
 
-        msg = 'got a 200 response but could not find access token in data'
+        msg = 'got a 200 response but could not find access token in response_data'
         self.logger.error(msg)
         raise KeyError(msg)
 
@@ -566,32 +703,30 @@ class ApiAccessTokenEndpoint():
             'scope': scopes_delimited,
         }
 
-        response = self._get_token_response(url, headers, data=data)
+        response_data = self._get_token_response_data(url, headers, data=data)
 
-        data = response.json()
-
-        if ('access_token' not in data):
+        if ('access_token' not in response_data):
             msg = 'got a 200 response but could not find access token in data'
             self.logger.error(msg)
             raise KeyError(msg)
 
-        if ('expires_in' not in data):
+        if ('expires_in' not in response_data):
             msg = 'got a 200 response but could not find expires_in attribute in data'
             self.logger.error(msg)
             raise KeyError(msg)
 
-        token          = data['access_token']
-        expires_in_raw = data['expires_in']
+        token          = response_data['access_token']
+        expires_in_raw = response_data['expires_in']
 
         if (expires_in_raw is None):
-            msg = f"expires_in value missing"
+            msg = "expires_in value missing"
             raise ValueError(msg)
 
         expires_in = int(expires_in_raw)
 
-        # If data['expires_in'] cannot be converted to an int the
+        # If response_data['expires_in'] cannot be converted to an int the
         # above will raise an error. But that's OK because we need
-        # data['expires_in'] to be a number.
+        # response_data['expires_in'] to be a number.
 
         expires_at = utc_datetime_secs_from_now(expires_in)
 

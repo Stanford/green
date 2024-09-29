@@ -31,7 +31,7 @@ class MaIS_API():
         """Concatenate the base_url with the url_suffix"""
         return f"{self.base_url}/{url_suffix}"
 
-    def make_request(self, method: str, url_suffix: str):
+    def make_request(self, method: str, url_suffix: str) -> requests.Response:
         full_url = self.make_url(url_suffix)
 
         # Use a context for session because setting the client certs
@@ -42,7 +42,7 @@ class MaIS_API():
 
             # We want a JSON response.
             headers = {'Accept': 'application/json'}
-            http_session.headers = headers
+            http_session.headers = headers  # type: ignore
 
             response = http_session.request(
                 method,

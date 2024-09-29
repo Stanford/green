@@ -20,11 +20,32 @@ from stanford.green.ldap import people_attribute_is_single_valued
 from stanford.green.ldap import people_attribute_is_multi_valued
 from stanford.green.ldap import LDAP
 
+from stanford.green.oauth2 import AccessToken
+from stanford.green.oauth2 import ApiAccessTokenEndpoint
+
+from exponential_backoff_ca import ExponentialBackoff
 from stanford.green.mais_apis.workgroup import WorkgroupAPI
 
 ## Logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #
+def read_test_config():
+    """Read the test config file test_config.yaml"""
+    import yaml
+
+    with open('test_config.yaml', 'r') as f:
+        Config = yaml.safe_load(f)
+
+    return Config
+
+def read_secret(client_secret_path):
+    with open(client_secret_path, 'r', encoding='utf-8') as file1:
+        lines = file1.readlines()
+        return lines[0].strip()
+
+### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #### ## #
 
 class TestGreen(unittest.TestCase):
 
@@ -358,7 +379,6 @@ class TestGreenWorkgroupAPI(unittest.TestCase):
         members_to_add = ['jholder']
         for member in members_to_add:
             print(f"adding member {member}")
-            print(f"AAAAA {wg_api.add_user(member)}")
 
         # Wait until the adds have settled.
         for i in range(8):
@@ -366,7 +386,7 @@ class TestGreenWorkgroupAPI(unittest.TestCase):
             if (len(members) == len(members_to_add)):
                 # We are done.
                 break
-            # Skeep a bit before trying again.
+            # Sleep a bit before trying again.
             print(f"sleeping a bit to give adds a chance to settle")
             time.sleep(5.0)
 
@@ -374,5 +394,36 @@ class TestGreenWorkgroupAPI(unittest.TestCase):
         self.assertEqual(len(members), len(members_to_add))
 
 
+class TestGreenOAuth2(unittest.TestCase):
+
+    Config = read_test_config()
+
+    def test_oauth2_get_token(self):
+
+        time_slot_secs = 3.0  # The number of seconds in each time slot.
+        num_iterations = 4    # The number of iterations.
+        limit_value    = 4.0  # Don't wait any longer than this number of seconds.
+        exp_backoff    = ExponentialBackoff(time_slot_secs, num_iterations,
+                                            limit_value=limit_value, debug=True)
+
+        url                = TestGreenOAuth2.Config['oauth2']['url']
+        client_id          = TestGreenOAuth2.Config['oauth2']['client_id']
+        client_secret_path = TestGreenOAuth2.Config['oauth2']['client_secret_path']
+
+        client_secret = read_secret(client_secret_path)
+
+        for use_lib in ['requests', 'urllib']:
+            print(f"testing use_lib '{use_lib}'")
+            api_access    = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
+                                                   exp_backoff, scopes=['read', 'list'],
+                                                   use_lib=use_lib, verbose=True)
+            access_token = api_access.get_token()
+            token        = access_token.token
+
+            self.assertTrue(len(token) > 20)
+            self.assertIsNotNone(access_token.expires_at)
+
+
 if __name__ == '__main__':
     unittest.main()
+    #unittest.main(argv=['', 'TestGreenOAuth2'])

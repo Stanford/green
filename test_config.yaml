@@ -1,0 +1,6 @@
+---
+
+oauth2:
+  url: https://login.stanford.edu/idp/profile/oidc/token
+  client_id: c-05671f7ae4ede1
+  client_secret_path: kilroy-client-secret
