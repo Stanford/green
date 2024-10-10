@@ -359,11 +359,8 @@ class ApiAccessTokenEndpoint():
         # We subtract 5 seconds from expires_in to avoid a situation where
         # the current time is so close to the expires time that we return a
         # token that will expire in the time it takes to make the API call.
-        self.logger.debug(f"setting expiration to {expires_in - 5}")
-        print(f"cache value before setting is {value}")
+        self.logger.debug(f"setting expiration to {expires_in - 5} seconds")
         self.cache.set(self.cache_key, value, expire=(expires_in - 5))
-        x = self.cache.get(self.cache_key)
-        print(f"cache value read after setting is {x}")
 
     def cache_get(self) -> AccessToken:
         """Get the cached value.
