@@ -254,6 +254,10 @@ class ApiAccessTokenEndpoint():
     :param use_cache: if set to ``True`` the access token will be cached; default: ``True``.
     :type use_cache: bool
 
+    :param cache_dir: if use_cache is ``True`` then cache_dir is the caching directory to use;
+      default: ``/tmp/stanford_green_cache``.
+    :type cache_dir: bool
+
     :param grant_type: (only relevant if endpoint type is "oauth2") the OAuth grant type;
       default: "client_credentials"
     :type grant_type: str
@@ -273,6 +277,7 @@ class ApiAccessTokenEndpoint():
             exp_backoff:       ExponentialBackoff,
             timeout:           float=15.0,
             use_cache:         bool=True,
+            cache_dir:         str='/tmp/stanford_green_cacheNone',
             verbose:           bool=False,
             # OAuth stuff:
             grant_type:        str='client_credentials',
@@ -314,7 +319,7 @@ class ApiAccessTokenEndpoint():
             hasher = hashlib.sha256()
             hasher.update(url.encode('ascii'))
             self.cache_key = 'access_token_' + hasher.hexdigest()
-            self.cache     = Cache()  # Cache the access token
+            self.cache     = Cache(cache_dir)  # Cache the access token
 
         self.logger = logging.getLogger(__name__)
 
@@ -354,7 +359,11 @@ class ApiAccessTokenEndpoint():
         # We subtract 5 seconds from expires_in to avoid a situation where
         # the current time is so close to the expires time that we return a
         # token that will expire in the time it takes to make the API call.
+        self.logger.debug(f"setting expiration to {expires_in - 5}")
+        print(f"cache value before setting is {value}")
         self.cache.set(self.cache_key, value, expire=(expires_in - 5))
+        x = self.cache.get(self.cache_key)
+        print(f"cache value read after setting is {x}")
 
     def cache_get(self) -> AccessToken:
         """Get the cached value.
@@ -364,6 +373,7 @@ class ApiAccessTokenEndpoint():
 
         """
         self.logger.debug('entering cache_get()')
+        self.logger.debug(f"attempting to get cached value with key {self.cache_key}")
         return cast(AccessToken, self.cache.get(self.cache_key))
 
     def get_token(self,
