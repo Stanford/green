@@ -71,7 +71,7 @@ class KerberosTicket():
         self.ticket_file = ticket_file
 
         if (ticket_lock_file is None):
-            self.ticket_lock_file = f"{ticket_lock_file}.lock"
+            self.ticket_lock_file = f"{ticket_file}.lock"
         else:
             self.ticket_lock_file = ticket_lock_file
 
