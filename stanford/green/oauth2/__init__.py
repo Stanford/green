@@ -46,15 +46,23 @@ To connect to an OAuth2 Authorization Server and get an access token::
                                           exp_backoff, scopes=['read', 'list'],
                                           verbose=True)
 
+  # Get the token.
+  access_token = api_access.get_token()
+
+  # This token can now be used with the API to do other operations.
+
   # If you want to cache the token, set the "use_cache" flag to True:
   # api_access = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
   #                                     exp_backoff,  scopes=['read', 'list'],
   #                                     verbose=True, use_cache=True)
 
-  # Get the token.
-  access_token = api_access.get_token()
+  # By default the request puts the client id and secret in the POSTed
+  # data. However, if your Authorization Server only wants the id and
+  # secret passed as a Basic Auth header set ``use_base_auth`` to ``True``:
+  # api_access = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
+  #                                     exp_backoff,  scopes=['read', 'list'],
+  #                                     verbose=True, use_basic_auth=True)
 
-  # This token can now be used with the API to do other operations.
 
 To connect to an ACS-style API endpoint you use much the same code as above::
 
@@ -248,6 +256,12 @@ class ApiAccessTokenEndpoint():
       object used for retrying access token retrieval.
     :type exp_backoff: ExponentialBackoff
 
+    :param use_basic_auth: a boolean that when set to ``True`` means send the client id and secret
+      in a Basic Auth header but when set to ``False`` means to send the client id and secret
+      as parameters in the POST (this parameter is _ignored_ when ``endpoint_type`` is
+      set to ``acs_api``); using  default ``False``.
+    :type use_basic_auth: bool
+
     :param timeout: the maximum time in seconds to wait for each request attempt; default: 15.0.
     :type timeout: float
 
@@ -275,6 +289,7 @@ class ApiAccessTokenEndpoint():
             client_id:         str,
             client_secret:     str,
             exp_backoff:       ExponentialBackoff,
+            use_basic_auth:    bool=False,
             timeout:           float=15.0,
             use_cache:         bool=True,
             cache_dir:         str='/tmp/stanford_green_cacheNone',
@@ -292,10 +307,11 @@ class ApiAccessTokenEndpoint():
 
         self.endpoint_type = endpoint_type
 
-        self.url           = url
-        self.client_id     = client_id
-        self.client_secret = client_secret
-        self.exp_backoff   = exp_backoff
+        self.url            = url
+        self.client_id      = client_id
+        self.client_secret  = client_secret
+        self.exp_backoff    = exp_backoff
+        self.use_basic_auth = use_basic_auth
 
         self.timeout   = timeout
         self.use_cache = use_cache
@@ -682,21 +698,29 @@ class ApiAccessTokenEndpoint():
 
         headers = self.base_headers
 
-        # Make a Basic Auth header and add it to the headers list.
-        auth_string = f"{self.client_id}:{self.client_secret}"
-        auth_bytes  = auth_string.encode('utf-8')
-        auth_base64 = base64.b64encode(auth_bytes).decode('utf-8')
-        headers['Authorization'] = f"Basic {auth_base64}"
-
-        # OAuth Authorization server expects the scopes to be passed
-        # as a space-delimited string.
-        scopes_delimited = ' '.join(self.scopes)
-
         data = {
             'grant_type': self.grant_type,
-            'scope': scopes_delimited,
         }
 
+        # Make a Basic Auth header and add it to the headers list.
+        if (self.use_basic_auth):
+            auth_string = f"{self.client_id}:{self.client_secret}"
+            auth_bytes  = auth_string.encode('utf-8')
+            auth_base64 = base64.b64encode(auth_bytes).decode('utf-8')
+            headers['Authorization'] = f"Basic {auth_base64}"
+        else:
+            data['client_id']     = self.client_id
+            data['client_secret'] = self.client_secret
+
+        # Add scopes (if there are any).
+        if (len(self.scopes) > 0):
+            # OAuth Authorization server expects the scopes to be passed
+            # as a space-delimited string.
+            scopes_delimited = ' '.join(self.scopes)
+
+            data['scope'] = scopes_delimited
+
+        # Make the call...
         response_data = self._get_token_response_data(url, headers, data=data)
 
         if ('access_token' not in response_data):
