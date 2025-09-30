@@ -411,21 +411,29 @@ class TestGreenOAuth2(unittest.TestCase):
                                             limit_value=limit_value, debug=True)
 
         url                = TestGreenOAuth2.Config['oauth2']['url']
+        introspect_url     = TestGreenOAuth2.Config['oauth2']['introspect_url']
         client_id          = TestGreenOAuth2.Config['oauth2']['client_id']
         client_secret_path = TestGreenOAuth2.Config['oauth2']['client_secret_path']
+        scopes             = TestGreenOAuth2.Config['oauth2']['scopes']
 
         client_secret = read_secret(client_secret_path)
 
         for use_lib in ['requests', 'urllib']:
             print(f"testing use_lib '{use_lib}'")
             api_access    = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
-                                                   exp_backoff, scopes=['read', 'list'],
+                                                   exp_backoff, scopes=scopes,
                                                    use_lib=use_lib, verbose=True)
             access_token = api_access.get_token()
             token        = access_token.token
 
             self.assertTrue(len(token) > 20)
             self.assertIsNotNone(access_token.expires_at)
+
+            response = api_access.introspect(introspect_url, token)
+            print(response)
+
+            # Scopes should be in response.
+            self.assertIn('scope', response)
 
 
 if __name__ == '__main__':

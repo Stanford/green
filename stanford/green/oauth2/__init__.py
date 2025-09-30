@@ -49,7 +49,24 @@ To connect to an OAuth2 Authorization Server and get an access token::
   # Get the token.
   access_token = api_access.get_token()
 
-  # This token can now be used with the API to do other operations.
+  # Introspect the access token just received. To do this you need to provide
+  # the introspection URL.
+  introspect_url = 'https://api.endpoint.com/api/v1/token/introspect'
+  results = api_access.introspect(introspect_url, access_token.token)
+
+  # results will look something like
+  # {
+  #   'exp': 1759271790,
+  #   'iat': 1759269990,
+  #   ...,
+  #   'scope': 'profile kilroy:lockout:read kilroy:lockout:write email',
+  #   'client_id': 'cardinal-lockout-dev',
+  #   'username': 'service-account-cardinal-lockout-dev',
+  #   'token_type': 'Bearer'
+  # }
+
+
+  # The token can be used with the API to do other operations.
 
   # If you want to cache the token, set the "use_cache" flag to True:
   # api_access = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
@@ -62,6 +79,7 @@ To connect to an OAuth2 Authorization Server and get an access token::
   # api_access = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
   #                                     exp_backoff,  scopes=['read', 'list'],
   #                                     verbose=True, use_basic_auth=True)
+
 
 
 To connect to an ACS-style API endpoint you use much the same code as above::
@@ -302,7 +320,7 @@ class ApiAccessTokenEndpoint():
     ):
         valid_endpoints = ['acs_api', 'oauth2']
         if (endpoint_type not in valid_endpoints):
-            msg = f"unrecognized endpont type: '{endpoint_type}'"
+            msg = f"unrecognized endpoint type: '{endpoint_type}'"
             raise ValueError(msg)
 
         self.endpoint_type = endpoint_type
@@ -444,6 +462,34 @@ class ApiAccessTokenEndpoint():
 
         msg = "programming error?!?"
         raise RuntimeError(msg)
+
+    def introspect(self, introspect_url: str, token: str):
+        """Introspect a token.
+
+        If you have an access token you can ask the OAuth2 IdP
+        to introspect the token returning, among other data, the
+        scopes. Simply provide the introspectin URL and the token.
+        """
+        self.logger.debug("entering introspect")
+
+        headers = self.base_headers
+
+        data = {
+            'token': token,
+        }
+
+        if (self.use_basic_auth):
+            auth_string = f"{self.client_id}:{self.client_secret}"
+            auth_bytes  = auth_string.encode('utf-8')
+            auth_base64 = base64.b64encode(auth_bytes).decode('utf-8')
+            headers['Authorization'] = f"Basic {auth_base64}"
+        else:
+            data['client_id']     = self.client_id
+            data['client_secret'] = self.client_secret
+
+        response_data = self._get_token_response_data(introspect_url, headers, data=data)
+
+        return response_data
 
 #    def _get_token_response(
 #            self,

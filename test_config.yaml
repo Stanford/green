@@ -1,9 +1,17 @@
 ---
 
 oauth2:
-  url: https://login.stanford.edu/idp/profile/oidc/token
-  client_id: c-05671f7ae4ede1
-  client_secret_path: kilroy-client-secret
+  url: https://keycloak.svc.stanford.edu/auth/realms/et-eip-oauth-dev/protocol/openid-connect/token
+  introspect_url: https://keycloak.svc.stanford.edu/auth/realms/et-eip-oauth-dev/protocol/openid-connect/token/introspect
+  client_id: cardinal-lockout-dev
+  client_secret_path: cardinal-lockout-dev-password
+  scopes:
+    - kilroy:lockout:read
+    - kilroy:lockout:write
+
+#  url: https://login.stanford.edu/idp/profile/oidc/token
+#  client_id: c-05671f7ae4ede1
+#  client_secret_path: kilroy-client-secret
 
 workgroup_api:
   workgroup_name: kilroy:api-testing
