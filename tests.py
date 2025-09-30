@@ -26,6 +26,9 @@ from stanford.green.oauth2 import ApiAccessTokenEndpoint
 from exponential_backoff_ca import ExponentialBackoff
 from stanford.green.mais_apis.workgroup import WorkgroupAPI
 
+from stanford.green.afs import AFS, AFSExecs
+from stanford.green.afs.pts import PTS
+
 ## Logging
 logger = logging.getLogger(__name__)
 #logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -428,6 +431,45 @@ class TestGreenOAuth2(unittest.TestCase):
             self.assertIsNotNone(access_token.expires_at)
 
 
+class TestGreenAFS(unittest.TestCase):
+
+    def test_find_exec(self):
+        possible_execs = ['/etc/', '/sdlfkjsdfl', '/usr/bin/ls']
+        self.assertEqual(AFSExecs.find_exec(possible_execs), '/usr/bin/ls')
+
+        all_bad = ['sdfkljsd', '/sdlfkjsdfl', '/sdfsdf/sdf/sdf/sdf']
+        with self.assertRaises(ValueError) as _:
+            AFSExecs.find_exec(all_bad)
+
+        all_dirs = ['/etc/', '/etc', '/var/log']
+        with self.assertRaises(ValueError) as _:
+            AFSExecs.find_exec(all_dirs)
+
+        empty = []
+        with self.assertRaises(ValueError) as _:
+            AFSExecs.find_exec(empty)
+
+        # Check that the executables are set properly.
+        self.assertIn('pts', AFSExecs.pts)
+        self.assertIn('vos', AFSExecs.vos)
+        self.assertIn('fs',  AFSExecs.fs)
+
+
+    def test_pts_exec(self):
+        # Check that a pts exists
+        afs = AFS(basedir='/afs/ir', verbose=True)
+
+        pts = PTS(name='adamhl', verbose=True)
+        self.assertTrue(pts.exists())
+
+        pts = PTS(name='bogusbogus', verbose=True)
+        self.assertFalse(pts.exists())
+
+        pts = PTS(name='adamhl', verbose=True)
+        info = pts.get_info()
+
+
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
     #unittest.main(argv=['', 'TestGreenOAuth2'])
+    unittest.main(argv=['', 'TestGreenAFS'])

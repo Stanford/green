@@ -58,7 +58,7 @@ To connect to an OAuth2 Authorization Server and get an access token::
 
   # By default the request puts the client id and secret in the POSTed
   # data. However, if your Authorization Server only wants the id and
-  # secret passed as a Basic Auth header set ``use_base_auth`` to ``True``:
+  # secret passed as a Basic Auth header set ``use_basic_auth`` to ``True``:
   # api_access = ApiAccessTokenEndpoint('oauth2', url, client_id, client_secret,
   #                                     exp_backoff,  scopes=['read', 'list'],
   #                                     verbose=True, use_basic_auth=True)
