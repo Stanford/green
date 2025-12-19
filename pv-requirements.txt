@@ -1,4 +1,6 @@
 mypy
+ruff
+
 exponential_backoff_ca
 diskcache
 filelock

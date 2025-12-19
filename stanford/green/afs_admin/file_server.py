@@ -1,18 +1,20 @@
+from dataclasses import dataclass
 
+from typing import Optional
+
+@dataclass
 class AFSFileServerPartition:
     """
     name: typically something like "/vicepa" or "/vicepb".
     """
     name: str
 
+@dataclass
 class AFSFileServer:
-    """
-    sdfljk
+    """Represents an AFS File Server.
 
     """
-
     fqdn:       str
     ip_address: str
     port:       int
-    partitions: list[AFSPartition]
-
+    guid:       Optional[str]
