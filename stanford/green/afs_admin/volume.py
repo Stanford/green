@@ -12,13 +12,13 @@ from typing import Optional, cast
 AttributeDict = dict[str, str]
 
 
-@dataclass(kw_only=True)
-class VolumeHeader:
-    group_name: str            # The volume group name (same as RW name)
-    id_rwrite:  str            # The RW id is mandatory.
-    id_ronly:   Optional[str]  # All RO copies of a RW volume have the same id.
-    id_backup:  Optional[str]  # Not every RW volume will have a backup.
-    id_rclone:  Optional[str]  # Only non-None if there is a clone operation in progress.
+#@dataclass(kw_only=True)
+#class VolumeHeader:
+#    group_name: str            # The volume group name (same as RW name)
+#    id_rwrite:  str            # The RW id is mandatory.
+#    id_ronly:   Optional[str]  # All RO copies of a RW volume have the same id.
+#    id_backup:  Optional[str]  # Not every RW volume will have a backup.
+#    id_rclone:  Optional[str]  # Only non-None if there is a clone operation in progress.
 
 @dataclass(kw_only=True)
 class Volume:
@@ -42,8 +42,6 @@ class Volume:
     diskused:  the used value (in KB),
 
     """
-    header: VolumeHeader
-
     volume_type: AFSVolumeType
 
     name:       str
@@ -117,7 +115,6 @@ class Volume:
            site_count   4
            ...
 
-
         The vos_examine_str string has three sections.
 
         1. The "header" the first five lines ("groupName" through "rclone").
@@ -133,113 +130,38 @@ class Volume:
         # Convert the string into a sequence of lines.
         lines = vos_examine_str.strip().split("\n")
 
-        # ###         # ###         # ###         # ###         # ###
-        def is_header(key: str) -> bool:
-            header_keys = [
-                'groupName',
-                'rwrite',
-                'ronly',
-                'backup',
-                'rclone',
-            ]
-            return key in header_keys
-
-        def is_site(key: str) -> bool:
-            site_keys = [
-                'name',
-                'id',
-                'serv',
-                'part',
-                'status',
-                'backupID',
-                'parentID',
-                'cloneID',
-                'inUse',
-                'needsSalvaged',
-                'destroyMe',
-                'type',
-                'creationDate',
-                'accessDate',
-                'updateDate',
-                'backupDate',
-                'copyDate',
-                'flags',
-                'diskused',
-                'maxquota',
-                'minquota',
-                'filecount',
-                'dayUse',
-                'weekUse',
-                'volUpdateCounter',
-                'spare3',
-            ]
-            return key in site_keys
-
-        def is_first_site_key(key: str) -> bool:
-            if (key == 'name'):
-                return True
-            else:
-                return False
-        # ###         # ###         # ###         # ###         # ###
-
-        # Iterate over the lines.
-        header_attributes:       AttributeDict = {}
-        current_site_attributes: AttributeDict = {}
-        all_sites = []
-
-        for line in lines:
-            try:
-                key, value = line.split(None, 1)
-            except Exception as excp:
-                msg = f"problem parsing line '{line}': {excp}"
-                raise ValueError(msg)
-
-            key = key.strip()
-
-            if (is_header(key)):
-                header_attributes[key] = value.strip()
-            elif (is_site(key)):
-                if (is_first_site_key(key)):
-                    # We are in a NEW site.
-                    if (current_site_attributes):
-                        all_sites.append(current_site_attributes)
-                        current_site_attributes = {}
-
-                current_site_attributes[key] = value.strip()
-            else:
-                if (current_site_attributes):
-                    all_sites.append(current_site_attributes)
-                    current_site_attributes = {}
+        # For a Volume object we don't use the header_attributes.
+        _, all_sites = Volume.parse_volume_lines(lines)
 
         ## For each site return a Volume object.
         all_volumes = []
         for site_attributes in all_sites:
-            volume = Volume.volume_from_site(header_attributes, site_attributes)
+            volume = Volume.volume_from_site(site_attributes)
             all_volumes.append(volume)
 
         return all_volumes
 
     @staticmethod
-    def volume_from_site(header_attributes: AttributeDict, site_attributes: AttributeDict) -> Volume:
+    def volume_from_site(site_attributes: AttributeDict) -> Volume:
 
-        ## Header attributes.
-        ids = ['rwrite', 'ronly', 'backup', 'rclone']
-        my_header_attributes = cast(dict[str, str | None], copy.deepcopy(header_attributes))
-        for id1 in ids:
-            value = my_header_attributes[id1]
-            if ((value is not None) and (str(value.strip()) == '0')):
-                my_header_attributes[id1] = None
-
-        assert(my_header_attributes['groupName'] is not None)
-        assert(my_header_attributes['rwrite'] is not None)
-
-        header = VolumeHeader(
-            group_name=my_header_attributes['groupName'],
-            id_rwrite=my_header_attributes['rwrite'],
-            id_ronly=my_header_attributes['ronly'],
-            id_rclone=my_header_attributes['rclone'],
-            id_backup=my_header_attributes['backup'],
-        )
+#        ## Header attributes.
+#        ids = ['rwrite', 'ronly', 'backup', 'rclone']
+#        my_header_attributes = cast(dict[str, str | None], copy.deepcopy(header_attributes))
+#        for id1 in ids:
+#            value = my_header_attributes[id1]
+#            if ((value is not None) and (str(value.strip()) == '0')):
+#                my_header_attributes[id1] = None
+#
+#        assert(my_header_attributes['groupName'] is not None)
+#        assert(my_header_attributes['rwrite'] is not None)
+#
+#        header = VolumeHeader(
+#            group_name=my_header_attributes['groupName'],
+#            id_rwrite=my_header_attributes['rwrite'],
+#            id_ronly=my_header_attributes['ronly'],
+#            id_rclone=my_header_attributes['rclone'],
+#            id_backup=my_header_attributes['backup'],
+#        )
 
         ## volume type
         raw_type = site_attributes['type']
@@ -260,7 +182,6 @@ class Volume:
 
         # split server into name and port
         fqdn, port = fqdn_port.split(':')
-
 
         ## in use.
         if (site_attributes['inUse'] == 'Y'):
@@ -292,8 +213,6 @@ class Volume:
         ###
         ### Step 2. Map the attributes to the parameters.
         params = {
-            'header': header,
-            #
             'name':       site_attributes['name'],
             'volume_id':  site_attributes['id'],
             #
@@ -320,6 +239,113 @@ class Volume:
         afs_volume = Volume(**params)  # type: ignore
 
         return afs_volume
+
+    @staticmethod
+    def parse_volume_lines(lines: list[str]) -> Tuple[AttributeDict, AttributeDict]:
+        """Parse a list of raw output lines and return header and all_sites
+
+        Given a list of lines from "vos examine" or "vos listfs" return
+        the header attributes and an array of site_attributes.
+
+        Note that the output of "vos listfs" does not contain any group header
+        information so this function will return the empty dict for header
+        attributes in that case.
+        """
+
+        # ###         # ###         # ###         # ###         # ###
+        def is_first_site_key(key: str) -> bool:
+            if (key == 'name'):
+                return True
+            else:
+                return False
+        # ###         # ###         # ###         # ###         # ###
+
+        # Iterate over the lines.
+        header_attributes:       AttributeDict = {}
+        current_site_attributes: AttributeDict = {}
+        all_sites                              = []
+
+        for line in lines:
+            try:
+                key, value = line.split(None, 1)
+            except Exception as excp:
+                msg = f"problem parsing line '{line}': {excp}"
+                raise ValueError(msg)
+
+            key = key.strip()
+
+            if (Volume.is_header_field(key)):
+                # This is a header line.
+                header_attributes[key] = value.strip()
+
+                # Convert any header of '0' to None
+                if (str(header_attributes[key]) == '0'):
+                    header_attributes[key] = None
+            elif (Volume.is_site_field(key)):
+                # This is a site line.
+                if (is_first_site_key(key)):
+                    # We are in a NEW site.
+                    if (current_site_attributes):
+                        all_sites.append(current_site_attributes)
+                        current_site_attributes = {}
+
+                current_site_attributes[key] = value.strip()
+            else:
+                # This is neither a header or site line.
+                if (current_site_attributes):
+                    all_sites.append(current_site_attributes)
+                    current_site_attributes = {}
+
+        # In case we have not appended the last site, do so now.
+        if (current_site_attributes):
+            all_sites.append(current_site_attributes)
+            current_site_attributes = {}
+
+        return (header_attributes, all_sites)
+
+
+    @staticmethod
+    def is_header_field(field: str) -> bool:
+        header_fields = [
+            'groupName',
+            'rwrite',
+            'ronly',
+            'backup',
+            'rclone',
+        ]
+        return field in header_fields
+
+    @staticmethod
+    def is_site_field(field: str) -> bool:
+        site_fields = [
+            'name',
+            'id',
+            'serv',
+            'part',
+            'status',
+            'backupID',
+            'parentID',
+            'cloneID',
+            'inUse',
+            'needsSalvaged',
+            'destroyMe',
+            'type',
+            'creationDate',
+            'accessDate',
+            'updateDate',
+            'backupDate',
+            'copyDate',
+            'flags',
+            'diskused',
+            'maxquota',
+            'minquota',
+            'filecount',
+            'dayUse',
+            'weekUse',
+            'volUpdateCounter',
+            'spare3',
+        ]
+        return field in site_fields
 
 
 @dataclass(kw_only=True)

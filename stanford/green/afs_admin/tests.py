@@ -2,6 +2,7 @@ import unittest
 
 import textwrap
 
+from stanford.green.afs_admin.file_server import AFSFileServer
 from stanford.green.afs_admin.volume   import Volume
 from stanford.green.afs_admin.resource import AFSResourceManager
 from stanford.green.afs_admin.resource.command_runner import CommandRunner
@@ -74,7 +75,7 @@ class TestAFSAdmin(unittest.TestCase):
 
         volumes = Volume.vos_examine_to_volume(TestAFSAdmin.vos_examine_output)
         volume0 = volumes[0]
-        self.assertEqual(volume0.header.group_name, 'users.a.d')
+        self.assertEqual(volume0.name, 'users.a.d')
 
     def test_make_volume_object(self):
         command_runner = TestAFSAdmin.command_runner
@@ -86,17 +87,56 @@ class TestAFSAdmin(unittest.TestCase):
         # Get the first volume.
         volume0 = volumes[0]
 
-        # All the volumes should have the same header information.
-        for volume in volumes:
-            self.assertEqual(volume.header, volume0.header)
 
-
-    def test_make_volume_set(self):
+    def test_make_volume_group(self):
         """sdfgjksdf
         """
         command_runner = TestAFSAdmin.command_runner
         afs_resource = AFSResourceManager(command_runner)
         volume_group = afs_resource.make_volume_group_object('users.a.e.readonly')
-        print(f"VGVGVGVG {volume_group}")
+        print("")
+        print(f"{volume_group}")
 
+    def test_get_file_servers(self):
+        """sdfgjksdf
+        """
+        command_runner = TestAFSAdmin.command_runner
+        afs_resource = AFSResourceManager(command_runner)
 
+        # Get the raw file server list
+        raw_list = command_runner.run_vos_listfs()
+
+        # This raw list should have several occurences of "UUID".
+        lines = raw_list.splitlines()
+        counter = 0
+        for line in lines:
+            if ("UUID" in line):
+                counter = counter + 1
+
+        # Should be several.
+        self.assertTrue(counter > 3)
+
+        ## 2. Get the list of FileServer objects.
+        file_servers = afs_resource.make_file_server_objects()
+        for file_server in file_servers:
+            print(file_server.to_yaml())
+
+    def test_get_volumes(self):
+        """sdfgjksdf
+        """
+
+        return
+        command_runner = TestAFSAdmin.command_runner
+        afs_resource = AFSResourceManager(command_runner)
+
+        file_servers = afs_resource.make_file_server_objects()
+
+        # Convert to a mapping of fqdn to file_server object
+        fqdn_to_file_server = AFSFileServer.fqdn_to_file_server(file_servers)
+
+        # Get the afssvr01 AFSFileServer object.
+        file_server_1 = fqdn_to_file_server['afssvr01.stanford.edu']
+        self.assertIsNotNone(file_server_1)
+
+        # Get the volumes from file_server_1.
+        volumes = afs_resource.get_volumes(file_server_1)

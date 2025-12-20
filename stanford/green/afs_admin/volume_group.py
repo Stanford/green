@@ -1,6 +1,24 @@
+import yaml
+
+from dataclasses import dataclass, asdict
+
 from stanford.green.afs_admin.volume import Volume
 
 from typing import Optional
+
+@dataclass(kw_only=True)
+class VolumeGroupHeader:
+    group_name: str            # The volume group name (same as RW name)
+    id_rwrite:  int            # The RW id is mandatory.
+    id_ronly:   Optional[int]  # All RO copies of a RW volume have the same id.
+    id_backup:  Optional[int]  # Not every RW volume will have a backup.
+    id_rclone:  Optional[int]  # Only non-None if there is a clone operation in progress.
+
+    def to_yaml(self) -> str:
+        my_dict = asdict(self)
+
+        yaml_string = yaml.dump(my_dict, sort_keys=True)
+        return yaml_string
 
 class VolumeGroup:
     """Represents a a volume group
@@ -15,13 +33,13 @@ class VolumeGroup:
     """
     def __init__(
             self,
-            group_name: str,
+            header:    VolumeGroupHeader,
             readwrite: Volume,
             backup:    Optional[Volume] = None,
             replicas:  list[Volume] = [],
     ):
 
-        self.group_name = group_name
+        self.header     = header
         self.readwrite  = readwrite
         self.backup     = backup
         self.replicas   = replicas
@@ -32,20 +50,28 @@ class VolumeGroup:
 
         separator = '-----------'
 
-        rv += 'RW volume'
-        rv += separator
-        rv += self.readwrite.to_yaml()
+        rv += "Group Information\n"
+        rv += separator + "\n"
+        rv += self.header.to_yaml()
+        rv += "\n"
 
-        rv += 'BK volume'
-        rv += separator
+        rv += "RW volume\n"
+        rv += separator + "\n"
+        rv += self.readwrite.to_yaml()
+        rv += "\n"
+
+        rv += "BK volume\n"
+        rv += separator + "\n"
         rv += self.backup.to_yaml()
+        rv += "\n"
 
         counter = 0
         for volume in self.replicas:
             counter = counter + 1
 
-            rv += f"RO volume {counter}"
-            rv += separator
+            rv += f"RO volume {counter}\n"
+            rv += separator + "\n"
             rv += volume.to_yaml()
+            rv += "\n"
 
-        return rv
+        return rv.strip()

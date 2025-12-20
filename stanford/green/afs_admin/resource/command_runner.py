@@ -60,3 +60,15 @@ class CommandRunner:
         """
         # Add the "-format" option.
         return self.run_vos('examine', ['-id', volume_name_or_id, '-format'])
+
+    def run_vos_listfs(self) -> str:
+        """Return the list of file servers a la "vos listfs"
+        """
+        return self.run_vos('listfs', [])
+
+    def run_vos_listvol(self, file_server) -> str:
+        """Return the raw output of "vos listvol fileserver
+        """
+        parameters = [file_server.fqdn, '-format']
+        return self.run_vos('listvol', parameters)
+
