@@ -1,21 +1,20 @@
 from __future__ import annotations
 
-import copy
 import yaml
 
 from dataclasses import dataclass, asdict
-from datetime    import datetime
+from datetime    import datetime, timezone
 
-from stanford.green.afs_admin.base        import AFSBase
+#from stanford.green.afs_admin.base        import AFSBase
 from stanford.green.afs_admin.file_server import AFSFileServer
 from stanford.green.afs_admin.volume_type import AFSVolumeType
 
 # Typing
-from typing import Optional, Tuple, cast
+from typing import Tuple
 AttributeDict = dict[str, str | None]
 
 @dataclass(kw_only=True)
-class Volume(AFSBase):
+class Volume:
     """A class representing an AFS volume.
 
     This class represents an AFS volume together with its backup (if it
@@ -48,7 +47,7 @@ class Volume(AFSBase):
 
     partition:  str
 
-    volume_id: str
+    volume_id: int
 
     in_use:    bool
 
@@ -142,6 +141,7 @@ class Volume(AFSBase):
 
         # To make myp happy as well as to do some basic sanity checks,
         # verify that some of the values of site_attributes are not None.
+        assert(site_attributes['id'] is not None)
         assert(site_attributes['serv'] is not None)
         assert(site_attributes['creationDate'] is not None)
         assert(site_attributes['accessDate'] is not None)
@@ -192,7 +192,7 @@ class Volume(AFSBase):
             if (int(epoch) == 0):
                 return None
             else:
-                return datetime.fromtimestamp(int(epoch))
+                return datetime.fromtimestamp(int(epoch), tz=timezone.utc)
         # ## #        # ## #        # ## #        # ## #        # ## #
 
         created_at        = examine_date_to_dt(site_attributes['creationDate'])
@@ -210,7 +210,7 @@ class Volume(AFSBase):
         ### Step 2. Map the attributes to the parameters.
         params = {
             'name':       site_attributes['name'],
-            'volume_id':  site_attributes['id'],
+            'volume_id':  int(site_attributes['id']),
             #
             'file_server': file_server,
             #

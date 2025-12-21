@@ -105,3 +105,28 @@ class CommandRunner:
 
         parameters = [server_id, '-format']
         self.run_vos('listvol', parameters, output_file=output_file)
+
+    def run_vos_listpart(self, file_server: AFSFileServer) -> None:
+        """Return the output of the "vos listpart" command.
+        """
+        parameters = [
+            '-server', file_server.identifier(),
+            ]
+
+        stdout = self.run_vos('listpart', parameters)
+        assert(stdout is not None)
+
+        return stdout
+
+    def run_vos_partinfo(self, file_server: AFSFileServer, partition: AFSFileServerPartition) -> None:
+        """Return the output of the "vos partinfo" command.
+        """
+        parameters = [
+            '-server', file_server.identifier(),
+            '-partition', partition.name,
+            ]
+
+        stdout = self.run_vos('partinfo', parameters)
+        assert(stdout is not None)
+
+        return stdout

@@ -2,21 +2,20 @@ import datetime
 import pathlib
 import re
 import tempfile
-import time
 
 from stanford.green.afs_admin.file_server  import AFSFileServer
+from stanford.green.afs_admin.file_server  import AFSFileServerPartition
 
 from stanford.green.afs_admin.resource.command_runner import CommandRunner
 
 from stanford.green.afs_admin.volume       import Volume
 from stanford.green.afs_admin.volume_group import VolumeGroup
 from stanford.green.afs_admin.volume_group import VolumeGroupHeader
-from stanford.green.afs_admin.volume_type  import AFSVolumeType
 
-from stanford.green.afs_admin.utility     import volume_base_name
+from stanford.green.afs_admin.utility      import volume_base_name
 
-from typing import Self
-
+# Typing
+from typing import Tuple
 
 class AFSResourceManager:
     def __init__(self, command_runner:CommandRunner, verbose: bool=False):
@@ -137,6 +136,7 @@ class AFSResourceManager:
         next_line_is_server = False
 
         file_servers = []
+        uuid = None
 
         for line in lines:
             if (next_line_is_server):
@@ -160,6 +160,9 @@ class AFSResourceManager:
                     )
 
                 file_servers.append(file_server)
+
+                # Reset the variables.
+                uuid = None
 
             elif ('UUID' in line):
                 # start of entry
@@ -284,3 +287,63 @@ class AFSResourceManager:
                         pass
 
         return all_volumes
+
+    def get_partitions(
+            self,
+            file_server: AFSFileServer
+    ) -> list[AFSFileServerPartition]:
+        """Get a list of paritions on a file server.
+        """
+        raw_output = self.command_runner.run_vos_listpart(file_server)
+
+        # The output will look like this:
+        # The partitions on the server are:
+        #     /vicepa     /vicepb
+        #     Total: 2
+
+        rx = r'The partitions on the server are:(.*)Total:.*'
+        match = re.match(rx, raw_output, re.MULTILINE | re.DOTALL)
+
+        partitions = []
+
+        if (match):
+            partitions_raw  = match.group(1).strip()
+            partition_names = partitions_raw.split()
+
+            for partition_name in partition_names:
+                partition = AFSFileServerPartition(
+                    name=partition_name
+                )
+                partitions.append(partition)
+        else:
+            msg = f"could not find partition information for file server {file_server.identifier()}"
+            raise Exception(msg)
+
+        return partitions
+
+    def get_partition_sizes(
+            self,
+            file_server: AFSFileServer,
+            partition:   AFSFileServerPartition
+    ) -> Tuple[int, int]:
+        """Get the sizes of a partition.
+
+        Returns the tuple (used_KB, total_KB).
+        """
+        raw_output = self.command_runner.run_vos_partinfo(file_server, partition)
+
+        # The output will look like this:
+        # Free space on server afssvr06.stanford.edu:7005 partition /vicepa: 1443189276 K blocks out of total 4292876288
+
+        pname = partition.name
+        rx = rf"^Free space.*{pname}: (\d+) K blocks out of total (\d+).*$"
+        match = re.match(rx, raw_output)
+
+        if (match):
+            used_KB  = match.group(1)
+            total_KB = match.group(2)
+        else:
+            msg = f"could not find partition information for file server {file_server.identifier()}"
+            raise Exception(msg)
+
+        return (int(used_KB), int(total_KB))

@@ -1,15 +1,16 @@
 import unittest
 
 import pathlib
+import re
 import tempfile
 import textwrap
 
 from stanford.green.afs_admin.file_server import AFSFileServer
 
-from stanford.green.afs_admin.volume   import Volume
+from stanford.green.afs_admin.volume      import Volume
 from stanford.green.afs_admin.volume_type import AFSVolumeType
 
-from stanford.green.afs_admin.resource import AFSResourceManager
+from stanford.green.afs_admin.resource                import AFSResourceManager
 from stanford.green.afs_admin.resource.command_runner import CommandRunner
 
 
@@ -66,18 +67,18 @@ class TestAFSAdmin(unittest.TestCase):
     """
 
 
-    verbose = True
-    #verbose = False
+    #verbose = True
+    verbose = False
 
     vos_examine_output=textwrap.dedent(vos_examine_output).strip()
 
     command_runner = CommandRunner.make_command_runner_direct()
     afs_resource   = AFSResourceManager(command_runner, verbose=verbose)
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         self.assertTrue(True)
 
-    def test_parse_vos_examine_output(self):
+    def test_parse_vos_examine_output(self) -> None:
         """Convert the output of vos examine into a volume object.
         """
         self.assertTrue(True)
@@ -86,7 +87,7 @@ class TestAFSAdmin(unittest.TestCase):
         volume0 = volumes[0]
         self.assertEqual(volume0.name, 'users.a.d')
 
-    def test_make_volume_object(self):
+    def test_make_volume_object(self) -> None:
         command_runner = TestAFSAdmin.command_runner
         afs_resource = AFSResourceManager(command_runner)
         volumes = afs_resource.create_volume_objects('users.a.e.readonly')
@@ -96,17 +97,19 @@ class TestAFSAdmin(unittest.TestCase):
         # Get the first volume.
         volume0 = volumes[0]
 
+        self.assertIsNotNone(volume0.name)
 
-    def test_make_volume_group(self):
+
+    def test_make_volume_group(self) -> None:
         """sdfgjksdf
         """
         command_runner = TestAFSAdmin.command_runner
         afs_resource = AFSResourceManager(command_runner)
         volume_group = afs_resource.make_volume_group_object('users.a.e.readonly')
-        print("")
-        print(f"{volume_group}")
+        #print("")
+        #print(f"{volume_group}")
 
-    def test_get_file_servers(self):
+    def test_get_file_servers(self) -> None:
         """sdfgjksdf
         """
         command_runner = TestAFSAdmin.command_runner
@@ -127,10 +130,10 @@ class TestAFSAdmin(unittest.TestCase):
 
         ## 2. Get the list of FileServer objects.
         file_servers = afs_resource.make_file_server_objects()
-        for file_server in file_servers:
-            print(file_server.to_yaml())
+        #for file_server in file_servers:
+        #    print(file_server.to_yaml())
 
-    def test_get_volumes(self):
+    def test_get_volumes(self) -> None:
         """sdfgjksdf
         """
 
@@ -169,7 +172,6 @@ class TestAFSAdmin(unittest.TestCase):
         # Get the volumes but this time only get volumes with names
         # containing the letter "a".
         volumes = afs_resource.get_volumes(file_server_1, rx=r'a')
-        print(len(volumes))
 
         # There should be several volumes.
         self.assertTrue(len(volumes) >= 10)
@@ -179,4 +181,31 @@ class TestAFSAdmin(unittest.TestCase):
         volumes = afs_resource.get_volumes(file_server_1, rx=r'^.*\.backup$', rx_all=True)
         for volume in volumes:
             self.assertEqual(volume.volume_type, AFSVolumeType.BK)
+
+
+    def test_get_partition_info(self) -> None:
+        """sdfgjksdf
+        """
+        command_runner = TestAFSAdmin.command_runner
+        afs_resource   = TestAFSAdmin.afs_resource
+
+        file_servers = afs_resource.make_file_server_objects()
+
+        # Get the first non-secure file server
+        file_server1 = None
+        for file_server in file_servers:
+            if ((file_server.fqdn is not None) and
+               (re.search(r'^afssvr\d\d.*$', file_server.fqdn))):
+                file_server1 = file_server
+                break
+
+        partitions = afs_resource.get_partitions(file_server1)
+        for partition in partitions:
+            self.assertRegex(partition.name, r'/vicep')
+
+        # Get the sizes of one of these partitions.
+        (used_KB, total_KB) = afs_resource.get_partition_sizes(file_server1, partitions[0])
+        self.assertRegex(str(used_KB),  r'^\d+$')
+        self.assertRegex(str(total_KB), r'^\d+$')
+        self.assertTrue((used_KB/total_KB) < 1.0)
 

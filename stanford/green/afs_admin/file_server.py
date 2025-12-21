@@ -13,6 +13,11 @@ class AFSFileServerPartition:
     """
     name: str
 
+    def get_info(self):
+        """Returns the size and used (in KB).
+        """
+        pass
+
 @dataclass
 class AFSFileServer:
     """Represents an AFS File Server.
@@ -42,3 +47,19 @@ class AFSFileServer:
                 fqdn_to_file_server[file_server.fqdn] = file_server
 
         return fqdn_to_file_server
+
+    def identifier(self) -> str:
+        """Returns the best "name" for this file server.
+
+        Returns the first of fqdn, uuid, or ip_address that is not None.
+        If all three are None raises a ValueError.
+        """
+        if (self.fqdn is not None):
+            return self.fqdn
+        elif (self.uuid is not None):
+            return self.uuid
+        elif (self.ip_address is not None):
+            return self.ip_address
+        else:
+            msg = "cannot return a server identifier as all of fqdn, ip_addres, and uuid are None"
+            raise ValueError(msg)
