@@ -1,9 +1,14 @@
 import unittest
 
+import pathlib
+import tempfile
 import textwrap
 
 from stanford.green.afs_admin.file_server import AFSFileServer
+
 from stanford.green.afs_admin.volume   import Volume
+from stanford.green.afs_admin.volume_type import AFSVolumeType
+
 from stanford.green.afs_admin.resource import AFSResourceManager
 from stanford.green.afs_admin.resource.command_runner import CommandRunner
 
@@ -61,9 +66,13 @@ class TestAFSAdmin(unittest.TestCase):
     """
 
 
+    verbose = True
+    #verbose = False
+
     vos_examine_output=textwrap.dedent(vos_examine_output).strip()
 
     command_runner = CommandRunner.make_command_runner_direct()
+    afs_resource   = AFSResourceManager(command_runner, verbose=verbose)
 
     def test_basic(self):
         self.assertTrue(True)
@@ -125,9 +134,8 @@ class TestAFSAdmin(unittest.TestCase):
         """sdfgjksdf
         """
 
-        return
         command_runner = TestAFSAdmin.command_runner
-        afs_resource = AFSResourceManager(command_runner)
+        afs_resource   = TestAFSAdmin.afs_resource
 
         file_servers = afs_resource.make_file_server_objects()
 
@@ -138,5 +146,37 @@ class TestAFSAdmin(unittest.TestCase):
         file_server_1 = fqdn_to_file_server['afssvr01.stanford.edu']
         self.assertIsNotNone(file_server_1)
 
-        # Get the volumes from file_server_1.
+        # Run the run_vos_listvol method.
+        with tempfile.NamedTemporaryFile(delete=True) as tmp:
+            temp_file = pathlib.Path(tmp.name)
+            command_runner.run_vos_listvol(file_server_1, temp_file)
+
+            self.assertTrue(temp_file.exists())
+
+            # Get the first few lines of temp_file to make sure we got
+            # some output.
+            with temp_file.open('r') as fh:
+                lines = [next(fh) for _ in range(3)]  # read first three lines
+                self.assertTrue(len(lines) == 3)
+                for line in lines:
+                    self.assertTrue(len(line) > 1)
+
         volumes = afs_resource.get_volumes(file_server_1)
+
+        # There should be several volumes.
+        self.assertTrue(len(volumes) >= 10)
+
+        # Get the volumes but this time only get volumes with names
+        # containing the letter "a".
+        volumes = afs_resource.get_volumes(file_server_1, rx=r'a')
+        print(len(volumes))
+
+        # There should be several volumes.
+        self.assertTrue(len(volumes) >= 10)
+
+        # Get all the backup volumes. Verify that all the volumes are, in fact, backup
+        # volumes.
+        volumes = afs_resource.get_volumes(file_server_1, rx=r'^.*\.backup$', rx_all=True)
+        for volume in volumes:
+            self.assertEqual(volume.volume_type, AFSVolumeType.BK)
+

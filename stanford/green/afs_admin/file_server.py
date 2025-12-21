@@ -30,7 +30,7 @@ class AFSFileServer:
         return yaml_string
 
     @staticmethod
-    def fqdn_to_file_server(file_servers: list[AFSFileServers]) -> dict[str, AFSFileServer]:
+    def fqdn_to_file_server(file_servers: list[AFSFileServer]) -> dict[str, AFSFileServer]:
         """Returns a dict mapping fqdn to AFSFileServer
 
         Any file_server in the `file_servers` parameter that has no
@@ -42,9 +42,3 @@ class AFSFileServer:
                 fqdn_to_file_server[file_server.fqdn] = file_server
 
         return fqdn_to_file_server
-
-    def volumes(self) -> list[Volumes]:
-        """Return a list of Volumes on this File Server.
-        """
-        run_vos_listvol
-        pass

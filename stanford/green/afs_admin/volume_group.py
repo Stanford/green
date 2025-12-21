@@ -62,7 +62,10 @@ class VolumeGroup:
 
         rv += "BK volume\n"
         rv += separator + "\n"
-        rv += self.backup.to_yaml()
+        if (self.backup is not None):
+            rv += self.backup.to_yaml()
+        else:
+            rv += 'None'
         rv += "\n"
 
         counter = 0

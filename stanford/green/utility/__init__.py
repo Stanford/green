@@ -1,6 +1,7 @@
 """Miscellaneous and utility functions
 
 """
+import pathlib
 import subprocess
 
 # pylint: disable=superfluous-parens
@@ -45,3 +46,36 @@ def run_command(cmd: List[str], raise_exception_on_error: bool = False) \
         raise RuntimeError(msg)
 
     return stdout, stderr, returncode
+
+def run_command_to_file(
+        cmd: List[str],
+        output_file: pathlib.Path,
+        raise_exception_on_error: bool = False
+) -> Tuple[str, int]:
+    """Run the command in the array ``cmd`` sending output to output_file.
+
+    See run_command for an explanation on how raise_exception_on_error
+    works.
+    """
+
+    with output_file.open('w') as fh:
+        result = subprocess.run(
+            cmd,
+            stdout=fh,               # Redirect stdout to file
+            stderr=subprocess.PIPE
+        )
+
+        stderr_b   = result.stderr
+        returncode = result.returncode
+
+    if (stderr_b is None):
+        stderr = None  # pragma: no cover
+    else:
+        stderr = stderr_b.decode("utf-8")
+
+    if (raise_exception_on_error and (returncode != 0)):
+        msg = f"command '{cmd}' had non-zero exit code {returncode}; " \
+              f"error output was '{stderr}'"
+        raise RuntimeError(msg)
+
+    return stderr, returncode

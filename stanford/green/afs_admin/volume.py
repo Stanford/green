@@ -6,22 +6,16 @@ import yaml
 from dataclasses import dataclass, asdict
 from datetime    import datetime
 
+from stanford.green.afs_admin.base        import AFSBase
+from stanford.green.afs_admin.file_server import AFSFileServer
 from stanford.green.afs_admin.volume_type import AFSVolumeType
 
-from typing import Optional, cast
-AttributeDict = dict[str, str]
-
-
-#@dataclass(kw_only=True)
-#class VolumeHeader:
-#    group_name: str            # The volume group name (same as RW name)
-#    id_rwrite:  str            # The RW id is mandatory.
-#    id_ronly:   Optional[str]  # All RO copies of a RW volume have the same id.
-#    id_backup:  Optional[str]  # Not every RW volume will have a backup.
-#    id_rclone:  Optional[str]  # Only non-None if there is a clone operation in progress.
+# Typing
+from typing import Optional, Tuple, cast
+AttributeDict = dict[str, str | None]
 
 @dataclass(kw_only=True)
-class Volume:
+class Volume(AFSBase):
     """A class representing an AFS volume.
 
     This class represents an AFS volume together with its backup (if it
@@ -46,10 +40,12 @@ class Volume:
 
     name:       str
 
-    server:     str
-    uuid:       str
-    ip_address: str
-    port:       int
+    file_server: AFSFileServer
+#    server:     str
+#    uuid:       str
+#    ip_address: str
+#    port:       int
+
     partition:  str
 
     volume_id: str
@@ -144,24 +140,17 @@ class Volume:
     @staticmethod
     def volume_from_site(site_attributes: AttributeDict) -> Volume:
 
-#        ## Header attributes.
-#        ids = ['rwrite', 'ronly', 'backup', 'rclone']
-#        my_header_attributes = cast(dict[str, str | None], copy.deepcopy(header_attributes))
-#        for id1 in ids:
-#            value = my_header_attributes[id1]
-#            if ((value is not None) and (str(value.strip()) == '0')):
-#                my_header_attributes[id1] = None
-#
-#        assert(my_header_attributes['groupName'] is not None)
-#        assert(my_header_attributes['rwrite'] is not None)
-#
-#        header = VolumeHeader(
-#            group_name=my_header_attributes['groupName'],
-#            id_rwrite=my_header_attributes['rwrite'],
-#            id_ronly=my_header_attributes['ronly'],
-#            id_rclone=my_header_attributes['rclone'],
-#            id_backup=my_header_attributes['backup'],
-#        )
+        # To make myp happy as well as to do some basic sanity checks,
+        # verify that some of the values of site_attributes are not None.
+        assert(site_attributes['serv'] is not None)
+        assert(site_attributes['creationDate'] is not None)
+        assert(site_attributes['accessDate'] is not None)
+        assert(site_attributes['updateDate'] is not None)
+        assert(site_attributes['backupDate'] is not None)
+        assert(site_attributes['copyDate'] is not None)
+        assert(site_attributes['diskused'] is not None)
+        assert(site_attributes['maxquota'] is not None)
+        assert(site_attributes['filecount'] is not None)
 
         ## volume type
         raw_type = site_attributes['type']
@@ -182,6 +171,13 @@ class Volume:
 
         # split server into name and port
         fqdn, port = fqdn_port.split(':')
+
+        file_server = AFSFileServer(
+            fqdn=fqdn,
+            ip_address=ip_address,
+            port=int(port),
+            uuid=uuid
+        )
 
         ## in use.
         if (site_attributes['inUse'] == 'Y'):
@@ -216,10 +212,7 @@ class Volume:
             'name':       site_attributes['name'],
             'volume_id':  site_attributes['id'],
             #
-            'server':     fqdn,
-            'ip_address': ip_address,
-            'port':       int(port),
-            'uuid':       uuid,
+            'file_server': file_server,
             #
             'partition':   site_attributes['part'],
             'in_use':      in_use,
@@ -241,7 +234,7 @@ class Volume:
         return afs_volume
 
     @staticmethod
-    def parse_volume_lines(lines: list[str]) -> Tuple[AttributeDict, AttributeDict]:
+    def parse_volume_lines(lines: list[str]) -> Tuple[AttributeDict, list[AttributeDict]]:
         """Parse a list of raw output lines and return header and all_sites
 
         Given a list of lines from "vos examine" or "vos listfs" return
@@ -347,22 +340,32 @@ class Volume:
         ]
         return field in site_fields
 
-
-@dataclass(kw_only=True)
-class RWVolume(Volume):
-    """A class representing a RW (read/write) AFS volume.
-
-    """
-
-    volume_type: AFSVolumeType = AFSVolumeType.RW
-
-
-@dataclass(kw_only=True)
-class ROVolumes(Volume):
-    """A class representing the set of RO (read-only AFS volumes associated with a RW volume.
-
-    Note the 's' in 'ROVolumes'. This is because it is often the case that
-    if a RW volume has a clone it has more than once.
-    """
-
-    volume_type: AFSVolumeType = AFSVolumeType.RO
+    @staticmethod
+    def non_none_fields() -> list[str]:
+        """Return an array of fields that should never be empty (None).
+        """
+        never_none_fields = [
+            'name',
+            'id',
+            'serv',
+            'part',
+            'status',
+            'parentID',
+            'inUse',
+            'needsSalvaged',
+            'destroyMe',
+            'type',
+            'creationDate',
+            'accessDate',
+            'updateDate',
+            'backupDate',
+            'copyDate',
+            'flags',
+            'diskused',
+            'maxquota',
+            'filecount',
+            'dayUse',
+            'weekUse',
+            'volUpdateCounter',
+        ]
+        return never_none_fields

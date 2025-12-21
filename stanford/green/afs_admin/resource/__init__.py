@@ -1,21 +1,44 @@
+import datetime
+import pathlib
 import re
+import tempfile
 import time
 
 from stanford.green.afs_admin.file_server  import AFSFileServer
+
+from stanford.green.afs_admin.resource.command_runner import CommandRunner
 
 from stanford.green.afs_admin.volume       import Volume
 from stanford.green.afs_admin.volume_group import VolumeGroup
 from stanford.green.afs_admin.volume_group import VolumeGroupHeader
 from stanford.green.afs_admin.volume_type  import AFSVolumeType
 
-from stanford.green.afs_admin.resource.command_runner import CommandRunner
+from stanford.green.afs_admin.utility     import volume_base_name
 
 from typing import Self
 
 
 class AFSResourceManager:
-    def __init__(self, command_runner:CommandRunner):
+    def __init__(self, command_runner:CommandRunner, verbose: bool=False):
         self.command_runner = command_runner
+        self.verbose        = verbose
+
+    @staticmethod
+    def get_timestamp() -> str:
+        # From ChatGPT
+        now = datetime.datetime.now()
+
+        # Format: YYYY-MM-DD HH:MM:SS.S  (S = tenths of a second)
+        time_str = now.strftime('%Y-%m-%d %H:%M:%S.') + str(int(now.microsecond / 100000))
+        return time_str
+
+    def progress(self, msg: str) -> None:
+        if (self.verbose):
+            time_str = AFSResourceManager.get_timestamp()
+            msg = f"[progress] [{time_str}] {msg}"
+            print(msg)
+
+        return
 
     def create_volume_objects(self, volume_name_or_id: str) -> list[Volume]:
         """Create a Volume object from the volume's name or id.
@@ -26,15 +49,7 @@ class AFSResourceManager:
         vos_examine_output = self.command_runner.run_vos_examine(volume_name_or_id)
         return Volume.vos_examine_to_volume(vos_examine_output)
 
-#    def create_volume_group_object(self, volume_name_or_id: str) -> VolumeGroup:
-#        """Create a VolumeGroup object from one of the volumes' name or id.
-#
-#        You can use the name/id of any volume in the volume group (RW, BK, or RO).
-#        """
-#        volumes = self.create_volume_objects(volume_name_or_id)
-#        return VolumeGroup.make_volume_group(volumes)
-
-    def make_volume_group_object(self, volume_name_or_id: str) -> Self:
+    def make_volume_group_object(self, volume_name_or_id: str) -> VolumeGroup:
         """Create a VolumeSet from a volume name or id.
         """
 
@@ -48,30 +63,33 @@ class AFSResourceManager:
         # header attributes.
         header_attributes, _ = Volume.parse_volume_lines(lines)
 
+        assert(header_attributes['groupName'] is not None)
+        assert(header_attributes['rwrite']    is not None)
+
+        group_name = header_attributes['groupName']
+        id_rwrite  = int(header_attributes['rwrite'])
+
         # Normalize the header attributes so that their type is correct
         # and replace any '0's with None.
-        my_header_attributes: dict[str, str | int | None] = {}
-        ids = ['groupName', 'rwrite', 'ronly', 'backup', 'rclone']
+        ids = ['ronly', 'backup', 'rclone']
+        optional_header_attributes: dict[str, int | None] = {}
+
         for id1 in ids:
             value = header_attributes[id1]
             if (value is  None):
-                my_header_attributes[id1] = None
+                optional_header_attributes[id1] = None
             elif ((value is not None) and (str(value.strip()) == '0')):
-                my_header_attributes[id1] = None
-            elif (id1 == 'groupName'):
-                my_header_attributes[id1] = value
+                optional_header_attributes[id1] = None
             else:
-                my_header_attributes[id1] = int(value)
+                optional_header_attributes[id1] = int(value)
 
-        assert(my_header_attributes['groupName'] is not None)
-        assert(my_header_attributes['rwrite'] is not None)
 
         vgroup_header = VolumeGroupHeader(
-            group_name=my_header_attributes['groupName'],
-            id_rwrite=my_header_attributes['rwrite'],
-            id_ronly=my_header_attributes['ronly'],
-            id_rclone=my_header_attributes['rclone'],
-            id_backup=my_header_attributes['backup'],
+            group_name=group_name,
+            id_rwrite=id_rwrite,
+            id_ronly=optional_header_attributes['ronly'],
+            id_rclone=optional_header_attributes['rclone'],
+            id_backup=optional_header_attributes['backup'],
         )
 
         ## Step 2a. Create the RW volume.
@@ -106,6 +124,8 @@ class AFSResourceManager:
     def make_file_server_objects(self) -> list[AFSFileServer]:
         """Get the list of FileServer objects
         """
+        uuid: str | None  # For mypy
+
         file_server_list_raw = self.command_runner.run_vos_listfs()
 
         # Parse the list
@@ -159,10 +179,20 @@ class AFSResourceManager:
 
         return file_servers
 
-    def get_volumes(self, file_server: AFSFileServer) -> list[Volume]:
-        """Get the list of FileServer objects
+    def get_volumes(
+            self,
+            file_server: AFSFileServer,
+            rx: str = r'^.*$',
+            rx_all: bool = False,
+    ) -> list[Volume]:
+        """Get the list Volumes on a file server.
+
+        Normally when using the rx to filter volume names any ".backup" or
+        ".readonly" are ignored. However, there may be times when you do
+        not want to ignore those parts of the name (e.g., if you are
+        searching for all .backup volumes). When you do NOT want to ignore
+        those suffixes set `rx_all` to True.
         """
-        volumes_list_raw = self.command_runner.run_vos_listvol(file_server)
 
         # Iterate through the list
         # BEGIN_OF_ENTRY
@@ -194,8 +224,6 @@ class AFSResourceManager:
         # spare3	0	(Optional)
         # END_OF_ENTRY
 
-        lines = volumes_list_raw.splitlines()
-
         # ###         # ###         # ###         # ###         # ###         # ###
         def begin_entry(line: str) -> bool:
             if (re.match(r'^BEGIN_OF_ENTRY.*$', line)):
@@ -210,24 +238,49 @@ class AFSResourceManager:
                 return False
 
         # ###         # ###         # ###         # ###         # ###         # ###
-        inside_entry = False
-        bundle_lines = []
-        for line in lines:
-            if (begin_entry(line)):
-                inside_entry = True
-            elif (end_entry(line)):
-                print("finished bundle")
+
+        # Compile the rx.
+        rx_compiled = re.compile(rx)
+
+        all_volumes = []
+        with tempfile.NamedTemporaryFile(delete=True) as tmp:
+            self.command_runner.run_vos_listvol(file_server, pathlib.Path(tmp.name))
+
+            with open(tmp.name, 'r') as fh:
+
                 inside_entry = False
-                _, all_sites = Volume.parse_volume_lines(bundle_lines)
+                bundle_lines: list[str] = []
 
-                site_attributes = all_sites[0]
-                print(f"SSSS {site_attributes}")
-                time.sleep(30)
+                for line in fh:
+                    if (begin_entry(line)):
+                        inside_entry = True
+                    elif (end_entry(line)):
+                        inside_entry = False
+                        _, all_sites = Volume.parse_volume_lines(bundle_lines)
 
-                bundle_lines = []
-                pass
-            elif (inside_entry):
-                bundle_lines.append(line)
-            else:
-                # Not inside an entry, so skip.
-                pass
+                        site_attributes = all_sites[0]
+                        volume_name = site_attributes['name']
+                        assert(volume_name is not None)
+
+                        if (rx_all):
+                            normalized_volume_name = volume_name
+                        else:
+                            normalized_volume_name = volume_base_name(volume_name)
+
+                        if (rx_compiled.search(normalized_volume_name)):
+                            self.progress(f"volume name {volume_name} matches")
+                            volume = Volume.volume_from_site(site_attributes)
+                            self.progress(f"created volume object {volume.name}")
+                            all_volumes.append(volume)
+                        else:
+                            self.progress(f"volume name {volume_name} does NOT match; skipping")
+
+                        bundle_lines = []
+                        pass
+                    elif (inside_entry):
+                        bundle_lines.append(line)
+                    else:
+                        # Not inside an entry, so skip.
+                        pass
+
+        return all_volumes
