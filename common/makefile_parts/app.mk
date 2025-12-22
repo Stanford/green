@@ -4,7 +4,8 @@ docs: ## Generate Sphinx docs
 	&& cd ../sphinx-docs/ \
 	&& make html \
 	&& cd .. && sphinx-build ./sphinx-docs/source/ ./sphinx-docs/build/ \
-	&& cp -pr sphinx-docs/build/html/* docs/
+	&& cp -pr sphinx-docs/build/html/* docs/ \
+	&& cp -pr docs/* /afs/ir.stanford.edu/users/a/d/adamhl/WWW/webauthed/all-stanford/green/
 
 .PHONY: mypy
 mypy:  ## Run Python static type-checker mypy
@@ -34,6 +35,6 @@ pylint:  ## Run Python linter pylint
 tests: ## Run unit tests
 	@source ${BUILD_DIR}/venv/bin/activate \
 	&& cd .. \
-	&& python run-tests.py
+	&& python run-tests.py --start-dir=${START_DIR}
 
 

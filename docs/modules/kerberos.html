@@ -7,11 +7,11 @@
 
     <title>stanford.green.kerberos &#8212; stanford-green  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
-    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="stanford.green.ldap" href="ldap.html" />
@@ -63,7 +63,7 @@ instances attempting to write to the same ticket cache at the same time.</p>
 </section>
 <dl class="py class">
 <dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.kerberos.</span></span><span class="sig-name descname"><span class="pre">KerberosTicket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keytab_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kprincipal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_lock_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age_limit_seconds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.kerberos.</span></span><span class="sig-name descname"><span class="pre">KerberosTicket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keytab_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kprincipal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticket_lock_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age_limit_seconds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket" title="Link to this definition">¶</a></dt>
 <dd><p>A Kerberos ticket object.</p>
 <p>Initialization requires the passing in of the keytab file path <em>and</em> the principal
 name.</p>
@@ -87,6 +87,12 @@ ticket lock file.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket.debug">
+<span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket.debug" title="Link to this definition">¶</a></dt>
+<dd><p>If in verbose mode print out this debug message.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket.ticket_file_needs_updating">
 <span class="sig-name descname"><span class="pre">ticket_file_needs_updating</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket.ticket_file_needs_updating" title="Link to this definition">¶</a></dt>
 <dd><p>Return true if the Kerberos ticket file needs updating, false otherwise.</p>
@@ -100,6 +106,12 @@ seconds old.</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="stanford.green.kerberos.KerberosTicket.verbose">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">verbose</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#stanford.green.kerberos.KerberosTicket.verbose" title="Link to this definition">¶</a></dt>
+<dd><p>Return the verbose setting.</p>
 </dd></dl>
 
 </dd></dl>
@@ -135,6 +147,7 @@ seconds old.</p></li>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../modules.html">stanford.green Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="afs_admin.html">stanford.green.afs_admin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="base.html">stanford.green</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">stanford.green.kerberos</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
@@ -142,7 +155,9 @@ seconds old.</p></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket"><code class="docutils literal notranslate"><span class="pre">KerberosTicket</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.cleanup"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.cleanup()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.create_ticket_file"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.create_ticket_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.debug"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.debug()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.ticket_file_needs_updating"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.ticket_file_needs_updating()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.kerberos.KerberosTicket.verbose"><code class="docutils literal notranslate"><span class="pre">KerberosTicket.verbose</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -181,7 +196,7 @@ seconds old.</p></li>
       &#169;2024, Adam H. Lewenberg.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

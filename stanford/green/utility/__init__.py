@@ -1,8 +1,12 @@
 """Miscellaneous and utility functions
 
 """
+import os
 import pathlib
 import subprocess
+
+from contextlib import contextmanager
+
 
 # pylint: disable=superfluous-parens
 
@@ -79,3 +83,19 @@ def run_command_to_file(
         raise RuntimeError(msg)
 
     return stderr, returncode
+
+@contextmanager
+def local_env_set(variable_name: str, variable_value: str) -> None:
+    """Define a context manager to do local environment variable setting.
+
+    """
+    old_value = os.environ.get(variable_name)
+    os.environ[variable_name] = variable_value
+    try:
+        yield
+    finally:
+        if old_value is None:
+            del os.environ[variable_name]
+        else:
+            os.environ[variable_name] = old_value
+

@@ -1,3 +1,20 @@
+"""The Volume class models an AFS volume.
+
+--------
+Overview
+--------
+
+The stanford.green.afs_admin.volume.Volume class models an AFS
+volume.
+
+--------
+Examples
+--------
+
+More...
+
+"""
+
 from __future__ import annotations
 
 import yaml
@@ -5,8 +22,8 @@ import yaml
 from dataclasses import dataclass, asdict
 from datetime    import datetime, timezone
 
-#from stanford.green.afs_admin.base        import AFSBase
 from stanford.green.afs_admin.file_server import AFSFileServer
+from stanford.green.afs_admin.runner      import AFSNoRunnerError
 from stanford.green.afs_admin.volume_type import AFSVolumeType
 
 # Typing
@@ -16,9 +33,6 @@ AttributeDict = dict[str, str | None]
 @dataclass(kw_only=True)
 class Volume:
     """A class representing an AFS volume.
-
-    This class represents an AFS volume together with its backup (if it
-    has one) and any read-only clones.
 
     name: the name of the volume
 
@@ -35,15 +49,13 @@ class Volume:
     diskused:  the used value (in KB),
 
     """
+    runner: Optional[Runner] = None
+
     volume_type: AFSVolumeType
 
     name:       str
 
     file_server: AFSFileServer
-#    server:     str
-#    uuid:       str
-#    ip_address: str
-#    port:       int
 
     partition:  str
 
@@ -73,6 +85,26 @@ class Volume:
 
         yaml_string = yaml.dump(my_dict, sort_keys=True)
         return yaml_string
+
+    def get_runner(self) -> Runner:
+        """Return self.runner, raising the ??? error if not runner is defined.
+        """
+        if (not self.runner):
+            msg = "no Runner has been defined for this object"
+            raise AFSNoRunnerError(msg)
+
+        return self.runner
+
+
+    @staticmethod
+    def create_volume_objects(runner: Runner, volume_name_or_id: str) -> list[Volume]:
+        """Create a Volume object from the volume's name or id.
+
+        If the volume corresponding to volume_name_or_id does not exist
+        will raise an exception.
+        """
+        vos_examine_output = runner.run_vos_examine(volume_name_or_id)
+        return Volume.vos_examine_to_volume(vos_examine_output)
 
     @staticmethod
     def vos_examine_to_volume(vos_examine_str: str) -> list[Volume]:

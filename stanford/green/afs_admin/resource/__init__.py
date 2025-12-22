@@ -6,7 +6,7 @@ import tempfile
 from stanford.green.afs_admin.file_server  import AFSFileServer
 from stanford.green.afs_admin.file_server  import AFSFileServerPartition
 
-from stanford.green.afs_admin.resource.command_runner import CommandRunner
+from stanford.green.afs_admin.runner import Runner
 
 from stanford.green.afs_admin.volume       import Volume
 from stanford.green.afs_admin.volume_group import VolumeGroup
@@ -18,9 +18,9 @@ from stanford.green.afs_admin.utility      import volume_base_name
 from typing import Tuple
 
 class AFSResourceManager:
-    def __init__(self, command_runner:CommandRunner, verbose: bool=False):
-        self.command_runner = command_runner
-        self.verbose        = verbose
+    def __init__(self, runner: Runner, verbose: bool=False):
+        self.runner  = runner
+        self.verbose = verbose
 
     @staticmethod
     def get_timestamp() -> str:
@@ -39,93 +39,14 @@ class AFSResourceManager:
 
         return
 
-    def create_volume_objects(self, volume_name_or_id: str) -> list[Volume]:
-        """Create a Volume object from the volume's name or id.
 
-        If the volume corresponding to volume_name_or_id does not exist
-        will raise an exception.
-        """
-        vos_examine_output = self.command_runner.run_vos_examine(volume_name_or_id)
-        return Volume.vos_examine_to_volume(vos_examine_output)
-
-    def make_volume_group_object(self, volume_name_or_id: str) -> VolumeGroup:
-        """Create a VolumeSet from a volume name or id.
-        """
-
-        ## Step 1. Create the volume group header.
-        # Get the "vos examine" output for this volume so we can get the
-        # header information.
-        vos_examine_string = self.command_runner.run_vos_examine(volume_name_or_id)
-        lines = vos_examine_string.splitlines()
-
-        # We don't need the all_sites attributes at this point, only the
-        # header attributes.
-        header_attributes, _ = Volume.parse_volume_lines(lines)
-
-        assert(header_attributes['groupName'] is not None)
-        assert(header_attributes['rwrite']    is not None)
-
-        group_name = header_attributes['groupName']
-        id_rwrite  = int(header_attributes['rwrite'])
-
-        # Normalize the header attributes so that their type is correct
-        # and replace any '0's with None.
-        ids = ['ronly', 'backup', 'rclone']
-        optional_header_attributes: dict[str, int | None] = {}
-
-        for id1 in ids:
-            value = header_attributes[id1]
-            if (value is  None):
-                optional_header_attributes[id1] = None
-            elif ((value is not None) and (str(value.strip()) == '0')):
-                optional_header_attributes[id1] = None
-            else:
-                optional_header_attributes[id1] = int(value)
-
-
-        vgroup_header = VolumeGroupHeader(
-            group_name=group_name,
-            id_rwrite=id_rwrite,
-            id_ronly=optional_header_attributes['ronly'],
-            id_rclone=optional_header_attributes['rclone'],
-            id_backup=optional_header_attributes['backup'],
-        )
-
-        ## Step 2a. Create the RW volume.
-        if (vgroup_header.id_rwrite is None):
-            msg = "cannot have the id_rwrite value be None"
-            raise ValueError(msg)
-
-        volumes   = self.create_volume_objects(str(vgroup_header.id_rwrite))
-        readwrite = volumes[0]
-
-        ## Step 2b. Create the BK volume.
-        if (vgroup_header.id_backup is None):
-            backup = None
-        else:
-            volumes = self.create_volume_objects(str(vgroup_header.id_backup))
-            backup  = volumes[0]
-
-        ## Step 2c. Create the RO volume(s).
-        if (vgroup_header.id_ronly is None):
-            replicas = []
-        else:
-            volumes  = self.create_volume_objects(str(vgroup_header.id_ronly))
-            replicas = volumes
-
-        return VolumeGroup(
-            header=vgroup_header,
-            readwrite=readwrite,
-            backup=backup,
-            replicas=replicas,
-        )
 
     def make_file_server_objects(self) -> list[AFSFileServer]:
         """Get the list of FileServer objects
         """
         uuid: str | None  # For mypy
 
-        file_server_list_raw = self.command_runner.run_vos_listfs()
+        file_server_list_raw = self.runner.run_vos_listfs()
 
         # Parse the list
         lines = file_server_list_raw.splitlines()
@@ -247,7 +168,7 @@ class AFSResourceManager:
 
         all_volumes = []
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
-            self.command_runner.run_vos_listvol(file_server, pathlib.Path(tmp.name))
+            self.runner.run_vos_listvol(file_server, pathlib.Path(tmp.name))
 
             with open(tmp.name, 'r') as fh:
 
@@ -294,7 +215,7 @@ class AFSResourceManager:
     ) -> list[AFSFileServerPartition]:
         """Get a list of paritions on a file server.
         """
-        raw_output = self.command_runner.run_vos_listpart(file_server)
+        raw_output = self.runner.run_vos_listpart(file_server)
 
         # The output will look like this:
         # The partitions on the server are:
@@ -330,7 +251,7 @@ class AFSResourceManager:
 
         Returns the tuple (used_KB, total_KB).
         """
-        raw_output = self.command_runner.run_vos_partinfo(file_server, partition)
+        raw_output = self.runner.run_vos_partinfo(file_server, partition)
 
         # The output will look like this:
         # Free space on server afssvr06.stanford.edu:7005 partition /vicepa: 1443189276 K blocks out of total 4292876288

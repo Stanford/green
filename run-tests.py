@@ -1,6 +1,8 @@
-from pathlib import Path
+import argparse
 import sys
 import unittest
+
+from pathlib import Path
 
 
 ## Set path to include stanford/green:
@@ -15,13 +17,22 @@ parent_dir = current_file.parent.parent
 sys.path.append(str(parent_dir))
 
 #################################################################
-start_dir = parent_dir
-start_dir = '.'
+def run_tests(start_dir: str):
 
-## Discover tests in all subdirectories with filenames starting with "test"
-loader = unittest.TestLoader()
-suite = loader.discover(start_dir=start_dir, pattern='tests*.py')
+    ## Discover tests in all subdirectories with filenames starting with "test"
+    loader = unittest.TestLoader()
+    suite = loader.discover(start_dir=start_dir, pattern='tests*.py')
 
-runner = unittest.TextTestRunner()
-runner.run(suite)
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
 
+
+parser = argparse.ArgumentParser(description="Process the start directory.")
+parser.add_argument(
+    '--start-dir',
+    default='.',
+    help='The directory to start with (default: current directory)'
+)
+args = parser.parse_args()
+
+run_tests(args.start_dir)

@@ -7,11 +7,11 @@
 
     <title>stanford.green.ldap &#8212; stanford-green  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
-    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="stanford.green.oauth2" href="oauth2.html" />
@@ -35,7 +35,7 @@
             
   <section id="module-stanford.green.ldap">
 <span id="stanford-green-ldap"></span><h1>stanford.green.ldap<a class="headerlink" href="#module-stanford.green.ldap" title="Link to this heading">¶</a></h1>
-<p>Useful LDAP functions.</p>
+<p>Useful LDAP functions.11</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
 <p>LDAP functions useful for Stanford-based applications. Currently the
@@ -63,27 +63,33 @@ information (this assumes you have a valid Kerberos context):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">stanford.green.ldap</span> <span class="kn">import</span> <span class="n">LDAP</span>
 
 <span class="n">ldap1</span> <span class="o">=</span> <span class="n">LDAP</span><span class="p">()</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_account_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>  <span class="c1"># Get account tree LDAP information for user &#39;jstanford&#39;</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_people_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>   <span class="c1"># Get people tree LDAP information for user &#39;jstanford&#39;</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>          <span class="c1"># Get BOTH account and people tree LDAP information for user &#39;jstanford&#39;</span>
+
+<span class="c1"># Get account tree LDAP information for user &#39;jstanford&#39;:</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_account_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>
+
+<span class="c1"># Get people tree LDAP information for user &#39;jstanford&#39;:</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_people_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>
+
+<span class="c1"># Get BOTH account and people tree LDAP information for user &#39;jstanford&#39;:</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ldap1</span><span class="o">.</span><span class="n">sunetid_info</span><span class="p">(</span><span class="s1">&#39;jstanford&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <dl class="py exception">
 <dt class="sig sig-object py" id="stanford.green.ldap.GreenLDAPNoResultsException">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenLDAPNoResultsException</span></span><a class="headerlink" href="#stanford.green.ldap.GreenLDAPNoResultsException" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenLDAPNoResultsException</span></span><a class="headerlink" href="#stanford.green.ldap.GreenLDAPNoResultsException" title="Link to this definition">¶</a></dt>
 <dd><p>Used when no LDAP results are found</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="stanford.green.ldap.GreenUnknownLDAPAttribute">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenUnknownLDAPAttribute</span></span><a class="headerlink" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">GreenUnknownLDAPAttribute</span></span><a class="headerlink" href="#stanford.green.ldap.GreenUnknownLDAPAttribute" title="Link to this definition">¶</a></dt>
 <dd><p>Used when an unrecognized attribute found</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAP">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">LDAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ldap.stanford.edu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_on_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.ldap.LDAP" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">LDAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ldap.stanford.edu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connect_on_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.ldap.LDAP" title="Link to this definition">¶</a></dt>
 <dd><p>The LDAP class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -103,8 +109,20 @@ must be a valid Kerberos context.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.ldap.LDAP.process_result">
+<span class="sig-name descname"><span class="pre">process_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.process_result" title="Link to this definition">¶</a></dt>
+<dd><p>Normalize an LDAP result including converting arrays into strings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.ldap.LDAP.scope_normalize">
+<span class="sig-name descname"><span class="pre">scope_normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.scope_normalize" title="Link to this definition">¶</a></dt>
+<dd><p>Return the ldap-package’s version of the scope based on the passed in string.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAP.search">
-<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basedn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filterstr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'(objectClass=*)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sub'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.search" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basedn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filterstr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'(objectClass=*)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sub'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.search" title="Link to this definition">¶</a></dt>
 <dd><p>Perform an LDAP search.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -134,7 +152,8 @@ is most easily explained with an example:</p>
 <span class="c1">#     { &#39;uid&#39;: &#39;jstanford&#39;, &#39;suSeasSunetID&#39;: [&#39;jstanford&#39;, &#39;jane.stanford&#39;], ... }</span>
 <span class="c1"># }</span>
 <span class="c1">#</span>
-<span class="c1"># There are two keys in the above: the &quot;suRegID=f0...&quot; one and the &quot;uid=jstanford,...&quot; one.</span>
+<span class="c1"># There are two keys in the above: the &quot;suRegID=f0...&quot; one</span>
+<span class="c1"># and the &quot;uid=jstanford,...&quot; one.</span>
 </pre></div>
 </div>
 <p>Note that the attributes are returned as either a string (for
@@ -147,7 +166,7 @@ converts these byte-strings into regular utf8 strings.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAP.sunetid_account_info">
-<span class="sig-name descname"><span class="pre">sunetid_account_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sunetid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.sunetid_account_info" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">sunetid_account_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sunetid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.sunetid_account_info" title="Link to this definition">¶</a></dt>
 <dd><p>Return the account tree information for user with uid equal to <code class="docutils literal notranslate"><span class="pre">sunetid</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -179,7 +198,7 @@ getting no results.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAP.sunetid_info">
-<span class="sig-name descname"><span class="pre">sunetid_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sunetid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.sunetid_info" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">sunetid_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sunetid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.sunetid_info" title="Link to this definition">¶</a></dt>
 <dd><p>Return the people and accounts tree information for user with uid equal to <code class="docutils literal notranslate"><span class="pre">sunetid</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -213,7 +232,7 @@ getting no results.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAP.sunetid_people_info">
-<span class="sig-name descname"><span class="pre">sunetid_people_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sunetid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.sunetid_people_info" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">sunetid_people_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sunetid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.ldap.LDAP.sunetid_people_info" title="Link to this definition">¶</a></dt>
 <dd><p>Return the people tree information for user with uid equal to <code class="docutils literal notranslate"><span class="pre">sunetid</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -243,6 +262,33 @@ returned, so be sure to trap that error if your code is OK with
 getting no results.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="stanford.green.ldap.LDAPAttributeDict">
+<span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">LDAPAttributeDict</span></span><a class="headerlink" href="#stanford.green.ldap.LDAPAttributeDict" title="Link to this definition">¶</a></dt>
+<dd><p>An LDAPResult is a result that maps DNs to LDAPAttributeDicts.</p>
+<p>Example of an LDAPResult
+{</p>
+<blockquote>
+<div><dl>
+<dt>‘uid=jstanford,cn=accounts,dc=stanford,dc=edu’:</dt><dd><dl class="simple">
+<dt>{</dt><dd><p>‘suLelandStatus’: ‘active’,
+‘gidNumber’: ‘37’,</p>
+</dd>
+</dl>
+<p>},</p>
+</dd>
+<dt>‘suRegID=3f4a9c2e1b8f0d6afa3b5c0e1d2a6f8c,cn=people,dc=stanford,dc=edu’:</dt><dd><dl class="simple">
+<dt>{</dt><dd><p>‘displayName’: ‘Jane Stanford’,
+‘sn’: ‘Stanford’,</p>
+</dd>
+</dl>
+<p>},}</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</p>
 </dd></dl>
 
 <dl class="py function">
@@ -395,12 +441,15 @@ people-tree attribute name.</p>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.GreenUnknownLDAPAttribute"><code class="docutils literal notranslate"><span class="pre">GreenUnknownLDAPAttribute</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.LDAP"><code class="docutils literal notranslate"><span class="pre">LDAP</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.connect"><code class="docutils literal notranslate"><span class="pre">LDAP.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.process_result"><code class="docutils literal notranslate"><span class="pre">LDAP.process_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.scope_normalize"><code class="docutils literal notranslate"><span class="pre">LDAP.scope_normalize()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.search"><code class="docutils literal notranslate"><span class="pre">LDAP.search()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.sunetid_account_info"><code class="docutils literal notranslate"><span class="pre">LDAP.sunetid_account_info()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.sunetid_info"><code class="docutils literal notranslate"><span class="pre">LDAP.sunetid_info()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.ldap.LDAP.sunetid_people_info"><code class="docutils literal notranslate"><span class="pre">LDAP.sunetid_people_info()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.LDAPAttributeDict"><code class="docutils literal notranslate"><span class="pre">LDAPAttributeDict</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.account_attribute_is_multi_valued"><code class="docutils literal notranslate"><span class="pre">account_attribute_is_multi_valued()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.account_attribute_is_single_valued"><code class="docutils literal notranslate"><span class="pre">account_attribute_is_single_valued()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stanford.green.ldap.attribute_is_multi_valued"><code class="docutils literal notranslate"><span class="pre">attribute_is_multi_valued()</span></code></a></li>
@@ -442,7 +491,7 @@ people-tree attribute name.</p>
       &#169;2024, Adam H. Lewenberg.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

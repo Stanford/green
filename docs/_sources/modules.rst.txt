@@ -5,6 +5,7 @@ stanford.green Modules
    :maxdepth: 1
    :caption: Contents:
 
+   modules/afs_admin
    modules/base
    modules/kerberos
    modules/ldap

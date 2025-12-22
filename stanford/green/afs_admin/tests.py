@@ -5,16 +5,19 @@ import re
 import tempfile
 import textwrap
 
+from stanford.green.afs_admin.config import AFSConfig
+
 from stanford.green.afs_admin.file_server import AFSFileServer
 
 from stanford.green.afs_admin.volume      import Volume
 from stanford.green.afs_admin.volume_type import AFSVolumeType
 
-from stanford.green.afs_admin.resource                import AFSResourceManager
-from stanford.green.afs_admin.resource.command_runner import CommandRunner
+from stanford.green.afs_admin.resource import AFSResourceManager
+from stanford.green.afs_admin.runner   import Runner
 
 
 class TestAFSAdmin(unittest.TestCase):
+
 
     # Output of "vos examine users.a.d. -format"
     vos_examine_output = """
@@ -72,8 +75,9 @@ class TestAFSAdmin(unittest.TestCase):
 
     vos_examine_output=textwrap.dedent(vos_examine_output).strip()
 
-    command_runner = CommandRunner.make_command_runner_direct()
-    afs_resource   = AFSResourceManager(command_runner, verbose=verbose)
+    config       = AFSConfig(cell='ir.stanford.edu')
+    runner       = Runner.make_runner_direct(config)
+    afs_resource = AFSResourceManager(runner, verbose=verbose)
 
     def test_basic(self) -> None:
         self.assertTrue(True)
@@ -88,9 +92,10 @@ class TestAFSAdmin(unittest.TestCase):
         self.assertEqual(volume0.name, 'users.a.d')
 
     def test_make_volume_object(self) -> None:
-        command_runner = TestAFSAdmin.command_runner
-        afs_resource = AFSResourceManager(command_runner)
-        volumes = afs_resource.create_volume_objects('users.a.e.readonly')
+        runner       = TestAFSAdmin.runner
+        afs_resource = AFSResourceManager(runner)
+
+        volumes = Volume.create_volume_objects(runner, 'users.a.e.readonly')
 
         self.assertTrue(len(volumes) > 1)
 
@@ -103,8 +108,8 @@ class TestAFSAdmin(unittest.TestCase):
     def test_make_volume_group(self) -> None:
         """sdfgjksdf
         """
-        command_runner = TestAFSAdmin.command_runner
-        afs_resource = AFSResourceManager(command_runner)
+        runner = TestAFSAdmin.runner
+        afs_resource = AFSResourceManager(runner)
         volume_group = afs_resource.make_volume_group_object('users.a.e.readonly')
         #print("")
         #print(f"{volume_group}")
@@ -112,11 +117,11 @@ class TestAFSAdmin(unittest.TestCase):
     def test_get_file_servers(self) -> None:
         """sdfgjksdf
         """
-        command_runner = TestAFSAdmin.command_runner
-        afs_resource = AFSResourceManager(command_runner)
+        runner = TestAFSAdmin.runner
+        afs_resource = AFSResourceManager(runner)
 
         # Get the raw file server list
-        raw_list = command_runner.run_vos_listfs()
+        raw_list = runner.run_vos_listfs()
 
         # This raw list should have several occurences of "UUID".
         lines = raw_list.splitlines()
@@ -137,7 +142,7 @@ class TestAFSAdmin(unittest.TestCase):
         """sdfgjksdf
         """
 
-        command_runner = TestAFSAdmin.command_runner
+        runner = TestAFSAdmin.runner
         afs_resource   = TestAFSAdmin.afs_resource
 
         file_servers = afs_resource.make_file_server_objects()
@@ -152,7 +157,7 @@ class TestAFSAdmin(unittest.TestCase):
         # Run the run_vos_listvol method.
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
             temp_file = pathlib.Path(tmp.name)
-            command_runner.run_vos_listvol(file_server_1, temp_file)
+            runner.run_vos_listvol(file_server_1, temp_file)
 
             self.assertTrue(temp_file.exists())
 
@@ -186,7 +191,7 @@ class TestAFSAdmin(unittest.TestCase):
     def test_get_partition_info(self) -> None:
         """sdfgjksdf
         """
-        command_runner = TestAFSAdmin.command_runner
+        runner = TestAFSAdmin.runner
         afs_resource   = TestAFSAdmin.afs_resource
 
         file_servers = afs_resource.make_file_server_objects()
