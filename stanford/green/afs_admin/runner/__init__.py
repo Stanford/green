@@ -25,19 +25,32 @@ from stanford.green.afs_admin.file_server import AFSFileServerPartition
 # Typing
 from typing import Optional
 
-class AFSNoRunnerError(Exception):
-    """Raised when an expecetd Runner is missing.
+class GreenAFSNoRunnerError(Exception):
+    """Raise when an expected Runner is missing.
     """
     pass
 
-class AFSRunnerError(Exception):
+class GreenAFSRunnerError(Exception):
+    """Raise when there is a Runner error.
+    """
     pass
 
 class RunnerInterface(Enum):
+    """The kind of interface the Runner uses.
+
+    Currently there are only two recognized interfaces: "direct" and "afsapi".
+
+    The "direct" interface uses AFS program calls (``vos``, ``pts``, etc.). The
+    "afsapi" uses calls to the AFS-API service.
+
+    The only interface implemented so far is "direct".
+    """
     direct = 1
     afsapi = 2
 
 class Runner:
+    """The Runner class.
+    """
 
     def __init__(self, config: AFSConfig, command_interface: RunnerInterface):
         self.config            = config
@@ -80,12 +93,28 @@ class Runner:
             vos_arguments: list[str],
             output_file: Optional[pathlib.Path] = None
     ) -> str | None:
-        """Run a 'vos' command.
+        """Run a ``vos`` command.
 
-        If the output_file is provided this function returns None.
+        :param subcommand: the ``vos`` "action" (e.g., ``examine`` or ``listfs``).
+        :type prefix: str
 
-        We run all vos commands with the TZ environment variable set to
-        "UTC".
+        :param vos_arguments: the rest of the command-line arguments to pass to ``vos subcommand``.
+        :type prefix: list[str]
+
+        :param output_file: if this parameter is passed rather than returning the
+          standard output string save the standard output to the file specified by
+          ``output_file``; note that this will *overwrite* ``output_file``.
+        :type prefix: Optional[str]
+
+        :return: the standard output of the ``vos`` command unless the ``output_file`` parameter
+          is provided, in which case nothing is returned.
+
+        If the output_file is provided this function returns ``None``.
+
+        We run all vos commands with the :envvar:`TZ` environment variable set to
+        ``UTC``.
+
+        For an example of use, see :meth:`Runner.run_vos_examine`.
         """
         if (self.is_direct()):
             command = ['vos', subcommand] + vos_arguments
@@ -116,7 +145,7 @@ class Runner:
             raise NotImplementedError(msg)
 
     def run_vos_examine(self, volume_name_or_id: str|int) -> str:
-        """Return the output of "vos examine <volume_name_or_id>"
+        """Return the output of ``vos examine <volume_name_or_id> -format``.
         """
         # Add the "-format" option.
         stdout = self.run_vos('examine', ['-id', str(volume_name_or_id), '-format'])

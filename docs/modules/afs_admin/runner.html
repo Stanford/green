@@ -41,20 +41,87 @@
 <p>This class does _not_ return AFS objects like Volume or AFSFileServer,
 rather, it returns the text output of command.</p>
 <dl class="py exception">
-<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.AFSNoRunnerError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">AFSNoRunnerError</span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.AFSNoRunnerError" title="Link to this definition">¶</a></dt>
-<dd><p>Raised when an expecetd Runner is missing.</p>
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.GreenAFSNoRunnerError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">GreenAFSNoRunnerError</span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.GreenAFSNoRunnerError" title="Link to this definition">¶</a></dt>
+<dd><p>Raise when an expected Runner is missing.</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.AFSRunnerError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">AFSRunnerError</span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.AFSRunnerError" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.GreenAFSRunnerError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">GreenAFSRunnerError</span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.GreenAFSRunnerError" title="Link to this definition">¶</a></dt>
+<dd><p>Raise when there is a Runner error.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.Runner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">Runner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#stanford.green.afs_admin.config.AFSConfig" title="stanford.green.afs_admin.config.AFSConfig"><span class="pre">AFSConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">command_interface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#stanford.green.afs_admin.runner.RunnerInterface" title="stanford.green.afs_admin.runner.RunnerInterface"><span class="pre">RunnerInterface</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.afs_admin.runner.Runner" title="Link to this definition">¶</a></dt>
+<dd><p>The Runner class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.Runner.run_vos">
+<span class="sig-name descname"><span class="pre">run_vos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subcommand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vos_arguments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.Runner.run_vos" title="Link to this definition">¶</a></dt>
+<dd><p>Run a <code class="docutils literal notranslate"><span class="pre">vos</span></code> command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subcommand</strong> – the <code class="docutils literal notranslate"><span class="pre">vos</span></code> “action” (e.g., <code class="docutils literal notranslate"><span class="pre">examine</span></code> or <code class="docutils literal notranslate"><span class="pre">listfs</span></code>).</p></li>
+<li><p><strong>vos_arguments</strong> – the rest of the command-line arguments to pass to <code class="docutils literal notranslate"><span class="pre">vos</span> <span class="pre">subcommand</span></code>.</p></li>
+<li><p><strong>output_file</strong> – if this parameter is passed rather than returning the
+standard output string save the standard output to the file specified by
+<code class="docutils literal notranslate"><span class="pre">output_file</span></code>; note that this will <em>overwrite</em> <code class="docutils literal notranslate"><span class="pre">output_file</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the standard output of the <code class="docutils literal notranslate"><span class="pre">vos</span></code> command unless the <code class="docutils literal notranslate"><span class="pre">output_file</span></code> parameter
+is provided, in which case nothing is returned.</p>
+</dd>
+</dl>
+<p>If the output_file is provided this function returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p>We run all vos commands with the <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">TZ</span></code> environment variable set to
+<code class="docutils literal notranslate"><span class="pre">UTC</span></code>.</p>
+<p>For an example of use, see <a class="reference internal" href="#stanford.green.afs_admin.runner.Runner.run_vos_examine" title="stanford.green.afs_admin.runner.Runner.run_vos_examine"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Runner.run_vos_examine()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.Runner.run_vos_examine">
+<span class="sig-name descname"><span class="pre">run_vos_examine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume_name_or_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.Runner.run_vos_examine" title="Link to this definition">¶</a></dt>
+<dd><p>Return the output of <code class="docutils literal notranslate"><span class="pre">vos</span> <span class="pre">examine</span> <span class="pre">&lt;volume_name_or_id&gt;</span> <span class="pre">-format</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.Runner.run_vos_listfs">
+<span class="sig-name descname"><span class="pre">run_vos_listfs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.Runner.run_vos_listfs" title="Link to this definition">¶</a></dt>
+<dd><p>Return the list of file servers a la “vos listfs”</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.Runner.run_vos_listpart">
+<span class="sig-name descname"><span class="pre">run_vos_listpart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_server</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AFSFileServer</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.Runner.run_vos_listpart" title="Link to this definition">¶</a></dt>
+<dd><p>Return the output of the “vos listpart” command.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.Runner.run_vos_listvol">
+<span class="sig-name descname"><span class="pre">run_vos_listvol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_server</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AFSFileServer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.Runner.run_vos_listvol" title="Link to this definition">¶</a></dt>
+<dd><p>Saves the raw output of “vos listvol fileserver” to a file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.Runner.run_vos_partinfo">
+<span class="sig-name descname"><span class="pre">run_vos_partinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_server</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AFSFileServer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AFSFileServerPartition</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.Runner.run_vos_partinfo" title="Link to this definition">¶</a></dt>
+<dd><p>Return the output of the “vos partinfo” command.</p>
+</dd></dl>
+
+</dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="stanford.green.afs_admin.runner.RunnerInterface">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">RunnerInterface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.afs_admin.runner.RunnerInterface" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The kind of interface the Runner uses.</p>
+<p>Currently there are only two recognized interfaces: “direct” and “afsapi”.</p>
+<p>The “direct” interface uses AFS program calls (<code class="docutils literal notranslate"><span class="pre">vos</span></code>, <code class="docutils literal notranslate"><span class="pre">pts</span></code>, etc.). The
+“afsapi” uses calls to the AFS-API service.</p>
+<p>The only interface implemented so far is “direct”.</p>
+</dd></dl>
 
 </section>
 
@@ -91,8 +158,9 @@ rather, it returns the text output of command.</p>
 <li class="toctree-l3"><a class="reference internal" href="../afs_admin.html#overview">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="config.html">afs_admin.config</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">afs_admin.runner</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.AFSNoRunnerError"><code class="docutils literal notranslate"><span class="pre">AFSNoRunnerError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.AFSRunnerError"><code class="docutils literal notranslate"><span class="pre">AFSRunnerError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.GreenAFSNoRunnerError"><code class="docutils literal notranslate"><span class="pre">GreenAFSNoRunnerError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.GreenAFSRunnerError"><code class="docutils literal notranslate"><span class="pre">GreenAFSRunnerError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.Runner"><code class="docutils literal notranslate"><span class="pre">Runner</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.RunnerInterface"><code class="docutils literal notranslate"><span class="pre">RunnerInterface</span></code></a></li>
 </ul>
 </li>

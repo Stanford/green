@@ -24,7 +24,7 @@ from datetime    import datetime, timezone
 
 from stanford.green.afs_admin.file_server import AFSFileServer
 from stanford.green.afs_admin.runner      import Runner
-from stanford.green.afs_admin.runner      import AFSNoRunnerError
+from stanford.green.afs_admin.runner      import GreenAFSNoRunnerError
 from stanford.green.afs_admin.volume_type import AFSVolumeType
 
 # Typing
@@ -92,7 +92,7 @@ class Volume:
         """
         if (not self.runner):
             msg = "no Runner has been defined for this object"
-            raise AFSNoRunnerError(msg)
+            raise GreenAFSNoRunnerError(msg)
 
         return self.runner
 

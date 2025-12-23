@@ -9,11 +9,10 @@ only authentication method supported when connecting to an LDAP server is GSSAPI
 (Kerberos).
 
 When connecting to an LDAP using Kerberos/GSSAPI credentials the necessary
-SASL libraries must be installed. For Debian bookworm these are:
-```
-libsasl2-dev
-libsasl2-modules-gssapi-mit
-```
+SASL libraries must be installed. For Debian bookworm these are::
+
+    libsasl2-dev
+    libsasl2-modules-gssapi-mit
 
 --------
 Examples
@@ -27,8 +26,8 @@ Determine if a Stanford attribute is single- or multi-valued::
   >>> attribute_is_multi_valued('suMailDrop')
   True
 
-Connect to the main Stanford LDAP server and get a user's accounts-tree
-information (this assumes you have a valid Kerberos context)::
+Connect to the main Stanford LDAP server and get a user's information from
+the various "trees" (this assumes you have a valid Kerberos context)::
 
   from stanford.green.ldap import LDAP
 
@@ -63,20 +62,22 @@ LDAP. Attributes can be single-valued or multi-valued, hence
 LDAPAttributeDict = dict[str, str|list[str]]
 
 """
-An LDAPResult is a result that maps DNs to LDAPAttributeDicts.
+An ``LDAPResult`` is a result that maps DNs to ``LDAPAttributeDicts``.
 
-Example of an LDAPResult
-{
-  'uid=jstanford,cn=accounts,dc=stanford,dc=edu':
+Example of an LDAPResult::
+
     {
-      'suLelandStatus': 'active',
-      'gidNumber': '37',
-    },
-  'suRegID=3f4a9c2e1b8f0d6afa3b5c0e1d2a6f8c,cn=people,dc=stanford,dc=edu':
-    {
-      'displayName': 'Jane Stanford',
-      'sn': 'Stanford',
-    },}
+      'uid=jstanford,cn=accounts,dc=stanford,dc=edu':
+        {
+          'suLelandStatus': 'active',
+          'gidNumber': '37',
+        },
+      'suRegID=3f4a9c2e1b8f0d6afa3b5c0e1d2a6f8c,cn=people,dc=stanford,dc=edu':
+        {
+          'displayName': 'Jane Stanford',
+          'sn': 'Stanford',
+        },
+    }
 
 """
 LDAPResult = dict[str, LDAPAttributeDict]

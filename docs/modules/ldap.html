@@ -42,11 +42,11 @@
 only authentication method supported when connecting to an LDAP server is GSSAPI
 (Kerberos).</p>
 <p>When connecting to an LDAP using Kerberos/GSSAPI credentials the necessary
-SASL libraries must be installed. For Debian bookworm these are:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">libsasl2-dev</span>
-<span class="pre">libsasl2-modules-gssapi-mit</span>
-<span class="pre">`</span></code></p>
+SASL libraries must be installed. For Debian bookworm these are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">libsasl2</span><span class="o">-</span><span class="n">dev</span>
+<span class="n">libsasl2</span><span class="o">-</span><span class="n">modules</span><span class="o">-</span><span class="n">gssapi</span><span class="o">-</span><span class="n">mit</span>
+</pre></div>
+</div>
 </section>
 <section id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
@@ -58,8 +58,8 @@ SASL libraries must be installed. For Debian bookworm these are:
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>Connect to the main Stanford LDAP server and get a user’s accounts-tree
-information (this assumes you have a valid Kerberos context):</p>
+<p>Connect to the main Stanford LDAP server and get a user’s information from
+the various “trees” (this assumes you have a valid Kerberos context):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">stanford.green.ldap</span> <span class="kn">import</span> <span class="n">LDAP</span>
 
 <span class="n">ldap1</span> <span class="o">=</span> <span class="n">LDAP</span><span class="p">()</span>
@@ -267,27 +267,22 @@ getting no results.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="stanford.green.ldap.LDAPAttributeDict">
 <span class="sig-prename descclassname"><span class="pre">stanford.green.ldap.</span></span><span class="sig-name descname"><span class="pre">LDAPAttributeDict</span></span><a class="headerlink" href="#stanford.green.ldap.LDAPAttributeDict" title="Link to this definition">¶</a></dt>
-<dd><p>An LDAPResult is a result that maps DNs to LDAPAttributeDicts.</p>
-<p>Example of an LDAPResult
-{</p>
-<blockquote>
-<div><dl>
-<dt>‘uid=jstanford,cn=accounts,dc=stanford,dc=edu’:</dt><dd><dl class="simple">
-<dt>{</dt><dd><p>‘suLelandStatus’: ‘active’,
-‘gidNumber’: ‘37’,</p>
-</dd>
-</dl>
-<p>},</p>
-</dd>
-<dt>‘suRegID=3f4a9c2e1b8f0d6afa3b5c0e1d2a6f8c,cn=people,dc=stanford,dc=edu’:</dt><dd><dl class="simple">
-<dt>{</dt><dd><p>‘displayName’: ‘Jane Stanford’,
-‘sn’: ‘Stanford’,</p>
-</dd>
-</dl>
-<p>},}</p>
-</dd>
-</dl>
-</div></blockquote>
+<dd><p>An <code class="docutils literal notranslate"><span class="pre">LDAPResult</span></code> is a result that maps DNs to <code class="docutils literal notranslate"><span class="pre">LDAPAttributeDicts</span></code>.</p>
+<p>Example of an LDAPResult:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;uid=jstanford,cn=accounts,dc=stanford,dc=edu&#39;</span><span class="p">:</span>
+    <span class="p">{</span>
+      <span class="s1">&#39;suLelandStatus&#39;</span><span class="p">:</span> <span class="s1">&#39;active&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;gidNumber&#39;</span><span class="p">:</span> <span class="s1">&#39;37&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+  <span class="s1">&#39;suRegID=3f4a9c2e1b8f0d6afa3b5c0e1d2a6f8c,cn=people,dc=stanford,dc=edu&#39;</span><span class="p">:</span>
+    <span class="p">{</span>
+      <span class="s1">&#39;displayName&#39;</span><span class="p">:</span> <span class="s1">&#39;Jane Stanford&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;sn&#39;</span><span class="p">:</span> <span class="s1">&#39;Stanford&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</p>
 </dd></dl>
 
@@ -432,6 +427,7 @@ people-tree attribute name.</p>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../modules.html">stanford.green Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="afs_admin.html">stanford.green.afs_admin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="base.html">stanford.green</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kerberos.html">stanford.green.kerberos</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">stanford.green.ldap</a><ul>
