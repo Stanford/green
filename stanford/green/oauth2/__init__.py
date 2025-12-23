@@ -104,7 +104,6 @@ import datetime
 import hashlib
 import json
 import logging
-import random
 import time
 import urllib
 

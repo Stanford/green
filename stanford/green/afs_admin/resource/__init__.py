@@ -8,11 +8,9 @@ from stanford.green.afs_admin.file_server  import AFSFileServerPartition
 
 from stanford.green.afs_admin.runner import Runner
 
-from stanford.green.afs_admin.volume       import Volume
-from stanford.green.afs_admin.volume_group import VolumeGroup
-from stanford.green.afs_admin.volume_group import VolumeGroupHeader
+from stanford.green.afs_admin.volume import Volume
 
-from stanford.green.afs_admin.utility      import volume_base_name
+from stanford.green.afs_admin.utility import volume_base_name
 
 # Typing
 from typing import Tuple

@@ -42,7 +42,7 @@ from filelock import FileLock
 from stanford.green.utility import run_command
 
 ## TYPING
-from typing import Any, Optional  # pylint: disable=wrong-import-order
+from typing import Optional  # pylint: disable=wrong-import-order
 ## END OF TYPING
 
 class KerberosTicket():
@@ -159,7 +159,7 @@ class KerberosTicket():
 
                 if (stderr):
                     raise RuntimeError(f"error obtaining a Kerberos ticket: {stderr}")
-            self.debug(f"Kerberos lock file should now be released")
+            self.debug("Kerberos lock file should now be released")
         else:
             self.debug("Kerberos ticket file is not old enough to need updating")
 

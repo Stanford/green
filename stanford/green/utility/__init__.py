@@ -11,7 +11,7 @@ from contextlib import contextmanager
 # pylint: disable=superfluous-parens
 
 ## TYPING
-from typing import Tuple, List  # pylint: disable=wrong-import-order
+from typing import Tuple, List, Iterator  # pylint: disable=wrong-import-order
 ## END OF TYPING
 
 def run_command(cmd: List[str], raise_exception_on_error: bool = False) \
@@ -85,7 +85,7 @@ def run_command_to_file(
     return stderr, returncode
 
 @contextmanager
-def local_env_set(variable_name: str, variable_value: str) -> None:
+def local_env_set(variable_name: str, variable_value: str) -> Iterator[None]:
     """Define a context manager to do local environment variable setting.
 
     """

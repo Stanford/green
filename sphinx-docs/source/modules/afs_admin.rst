@@ -7,6 +7,7 @@ stanford.green.afs_admin
 .. toctree::
    :maxdepth: 2
 
+   afs_admin/config
    afs_admin/runner
    afs_admin/volume
 

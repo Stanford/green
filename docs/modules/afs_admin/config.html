@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>afs_admin.config &#8212; stanford-green  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="afs_admin.runner" href="runner.html" />
+    <link rel="prev" title="stanford.green.afs_admin" href="../afs_admin.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-stanford.green.afs_admin.config">
+<span id="afs-admin-config"></span><h1>afs_admin.config<a class="headerlink" href="#module-stanford.green.afs_admin.config" title="Link to this heading">¶</a></h1>
+<p>The AFS Configuration class.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Use the stanford.green.afs_admin.config class to set the following global
+configuration variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cell</span></code>: the AFS cell (defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>). If set this will be
+passed as the argument to <code class="docutils literal notranslate"><span class="pre">-cell</span></code> in all the <code class="docutils literal notranslate"><span class="pre">vos</span></code> commands; for
+more information see the man page for <code class="docutils literal notranslate"><span class="pre">vos</span></code>.</p></li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">stanford.green.afs_admin.config</span> <span class="kn">import</span> <span class="n">AFSConfig</span>
+<span class="kn">from</span> <span class="nn">stanford.green.afs_admin.runner</span> <span class="kn">import</span> <span class="n">Runner</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">AFSConfig</span><span class="p">(</span>
+    <span class="n">cell</span><span class="o">=</span><span class="s1">&#39;my.example.com&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># An AFSConfig object is required when creating a Runner:</span>
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">make_runner_direct</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can omit the cell parameter and everything still works</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">stanford.green.afs_admin.config</span> <span class="kn">import</span> <span class="n">AFSConfig</span>
+<span class="kn">from</span> <span class="nn">stanford.green.afs_admin.runner</span> <span class="kn">import</span> <span class="n">Runner</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">AFSConfig</span><span class="p">()</span>
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="o">.</span><span class="n">make_runner_direct</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.config.AFSConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.config.</span></span><span class="sig-name descname"><span class="pre">AFSConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.afs_admin.config.AFSConfig" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">stanford-green</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../modules.html">stanford.green Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../afs_admin.html">stanford.green.afs_admin</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../afs_admin.html#overview">Overview</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">afs_admin.config</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.config.AFSConfig"><code class="docutils literal notranslate"><span class="pre">AFSConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="runner.html">afs_admin.runner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="volume.html">afs_admin.volume</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../base.html">stanford.green</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../kerberos.html">stanford.green.kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ldap.html">stanford.green.ldap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../oauth2.html">stanford.green.oauth2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../zulutime.html">stanford.green.zulutime</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../../modules.html">stanford.green Modules</a><ul>
+  <li><a href="../afs_admin.html">stanford.green.afs_admin</a><ul>
+      <li>Previous: <a href="../afs_admin.html" title="previous chapter">stanford.green.afs_admin</a></li>
+      <li>Next: <a href="runner.html" title="next chapter">afs_admin.runner</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Adam H. Lewenberg.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../../_sources/modules/afs_admin/config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

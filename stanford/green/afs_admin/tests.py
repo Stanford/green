@@ -9,15 +9,15 @@ from stanford.green.afs_admin.config import AFSConfig
 
 from stanford.green.afs_admin.file_server import AFSFileServer
 
-from stanford.green.afs_admin.volume      import Volume
-from stanford.green.afs_admin.volume_type import AFSVolumeType
+from stanford.green.afs_admin.volume       import Volume
+from stanford.green.afs_admin.volume_type  import AFSVolumeType
+from stanford.green.afs_admin.volume_group import VolumeGroup
 
 from stanford.green.afs_admin.resource import AFSResourceManager
 from stanford.green.afs_admin.runner   import Runner
 
 
 class TestAFSAdmin(unittest.TestCase):
-
 
     # Output of "vos examine users.a.d. -format"
     vos_examine_output = """
@@ -92,8 +92,7 @@ class TestAFSAdmin(unittest.TestCase):
         self.assertEqual(volume0.name, 'users.a.d')
 
     def test_make_volume_object(self) -> None:
-        runner       = TestAFSAdmin.runner
-        afs_resource = AFSResourceManager(runner)
+        runner = TestAFSAdmin.runner
 
         volumes = Volume.create_volume_objects(runner, 'users.a.e.readonly')
 
@@ -109,10 +108,10 @@ class TestAFSAdmin(unittest.TestCase):
         """sdfgjksdf
         """
         runner = TestAFSAdmin.runner
-        afs_resource = AFSResourceManager(runner)
-        volume_group = afs_resource.make_volume_group_object('users.a.e.readonly')
-        #print("")
-        #print(f"{volume_group}")
+        volume_group = VolumeGroup.make_volume_group_object(runner, 'users.a.e.readonly')
+
+        self.assertIsNotNone(volume_group.header)
+        self.assertIsNotNone(volume_group.readwrite)
 
     def test_get_file_servers(self) -> None:
         """sdfgjksdf
@@ -135,8 +134,8 @@ class TestAFSAdmin(unittest.TestCase):
 
         ## 2. Get the list of FileServer objects.
         file_servers = afs_resource.make_file_server_objects()
-        #for file_server in file_servers:
-        #    print(file_server.to_yaml())
+
+        self.assertTrue(len(file_servers) > 1)
 
     def test_get_volumes(self) -> None:
         """sdfgjksdf
@@ -191,7 +190,7 @@ class TestAFSAdmin(unittest.TestCase):
     def test_get_partition_info(self) -> None:
         """sdfgjksdf
         """
-        runner = TestAFSAdmin.runner
+        #runner = TestAFSAdmin.runner
         afs_resource   = TestAFSAdmin.afs_resource
 
         file_servers = afs_resource.make_file_server_objects()
@@ -204,6 +203,9 @@ class TestAFSAdmin(unittest.TestCase):
                 file_server1 = file_server
                 break
 
+        self.assertIsNotNone(file_server1)
+        assert(file_server1 is not None)
+
         partitions = afs_resource.get_partitions(file_server1)
         for partition in partitions:
             self.assertRegex(partition.name, r'/vicep')
@@ -213,4 +215,3 @@ class TestAFSAdmin(unittest.TestCase):
         self.assertRegex(str(used_KB),  r'^\d+$')
         self.assertRegex(str(total_KB), r'^\d+$')
         self.assertTrue((used_KB/total_KB) < 1.0)
-

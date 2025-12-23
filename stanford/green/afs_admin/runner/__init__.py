@@ -18,8 +18,9 @@ from stanford.green.utility import run_command
 from stanford.green.utility import run_command_to_file
 from stanford.green.utility import local_env_set
 
-from stanford.green.afs_admin.file_server import AFSFileServer
 from stanford.green.afs_admin.config      import AFSConfig
+from stanford.green.afs_admin.file_server import AFSFileServer
+from stanford.green.afs_admin.file_server import AFSFileServerPartition
 
 # Typing
 from typing import Optional
@@ -114,11 +115,11 @@ class Runner:
             msg = "the afs-api interface is not yet implemented for 'run_vos'"
             raise NotImplementedError(msg)
 
-    def run_vos_examine(self, volume_name_or_id: str) -> str:
+    def run_vos_examine(self, volume_name_or_id: str|int) -> str:
         """Return the output of "vos examine <volume_name_or_id>"
         """
         # Add the "-format" option.
-        stdout = self.run_vos('examine', ['-id', volume_name_or_id, '-format'])
+        stdout = self.run_vos('examine', ['-id', str(volume_name_or_id), '-format'])
         assert(stdout is not None)
 
         return stdout
@@ -147,7 +148,7 @@ class Runner:
         parameters = [server_id, '-format']
         self.run_vos('listvol', parameters, output_file=output_file)
 
-    def run_vos_listpart(self, file_server: AFSFileServer) -> None:
+    def run_vos_listpart(self, file_server: AFSFileServer) -> str:
         """Return the output of the "vos listpart" command.
         """
         parameters = [
@@ -159,7 +160,9 @@ class Runner:
 
         return stdout
 
-    def run_vos_partinfo(self, file_server: AFSFileServer, partition: AFSFileServerPartition) -> None:
+    def run_vos_partinfo(self,
+                         file_server: AFSFileServer,
+                         partition: AFSFileServerPartition) -> str:
         """Return the output of the "vos partinfo" command.
         """
         parameters = [

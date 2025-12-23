@@ -15,7 +15,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="afs_admin.volume" href="volume.html" />
-    <link rel="prev" title="stanford.green.afs_admin" href="../afs_admin.html" />
+    <link rel="prev" title="afs_admin.config" href="config.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -38,6 +38,14 @@
 <p>A command runner class</p>
 <p>The Runner class is used to run command-line commands like
 <code class="docutils literal notranslate"><span class="pre">vos</span></code>, <code class="docutils literal notranslate"><span class="pre">fs</span></code>, <code class="docutils literal notranslate"><span class="pre">pts</span></code>, etc.</p>
+<p>This class does _not_ return AFS objects like Volume or AFSFileServer,
+rather, it returns the text output of command.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.runner.AFSNoRunnerError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">AFSNoRunnerError</span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.AFSNoRunnerError" title="Link to this definition">¶</a></dt>
+<dd><p>Raised when an expecetd Runner is missing.</p>
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="stanford.green.afs_admin.runner.AFSRunnerError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.runner.</span></span><span class="sig-name descname"><span class="pre">AFSRunnerError</span></span><a class="headerlink" href="#stanford.green.afs_admin.runner.AFSRunnerError" title="Link to this definition">¶</a></dt>
@@ -81,7 +89,9 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../../modules.html">stanford.green Modules</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../afs_admin.html">stanford.green.afs_admin</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../afs_admin.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html">afs_admin.config</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">afs_admin.runner</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.AFSNoRunnerError"><code class="docutils literal notranslate"><span class="pre">AFSNoRunnerError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.AFSRunnerError"><code class="docutils literal notranslate"><span class="pre">AFSRunnerError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.runner.RunnerInterface"><code class="docutils literal notranslate"><span class="pre">RunnerInterface</span></code></a></li>
 </ul>
@@ -104,7 +114,7 @@
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="../../modules.html">stanford.green Modules</a><ul>
   <li><a href="../afs_admin.html">stanford.green.afs_admin</a><ul>
-      <li>Previous: <a href="../afs_admin.html" title="previous chapter">stanford.green.afs_admin</a></li>
+      <li>Previous: <a href="config.html" title="previous chapter">afs_admin.config</a></li>
       <li>Next: <a href="volume.html" title="next chapter">afs_admin.volume</a></li>
   </ul></li>
   </ul></li>

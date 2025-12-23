@@ -6,7 +6,6 @@ Functions related to "Zulu" time; see also https://www.w3.org/TR/NOTE-datetime.
 import re
 import datetime
 import dateutil.parser
-import pytz
 
 def is_zulu_string(zulu_str: str) -> bool:
     """Is ``zulu_str`` a valid "Zulu" time format string?

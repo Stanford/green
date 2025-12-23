@@ -102,10 +102,12 @@ class VolumeGroup:
         runner = self.get_runner()
 
         (readwrite, backup, replicas) = \
-            VolumeGroup.make_volume_group_volumes(runner,
-                                                  self.readwrite.volume_id,
-                                                  header=self.header
-                                                  )
+            VolumeGroup.make_volume_group_volumes(
+                runner,
+                self.readwrite.volume_id,
+                header=self.header
+
+            )
 
         self.readwrite = readwrite
         self.backup    = backup
@@ -115,7 +117,7 @@ class VolumeGroup:
 
 
     @staticmethod
-    def make_volume_group_header(runner: Runner, volume_name_or_id: str) \
+    def make_volume_group_header(runner: Runner, volume_name_or_id: str|int) \
             -> VolumeGroupHeader:
         """Create a VolumeGroupHeader from a volume name or id."""
 
@@ -159,7 +161,7 @@ class VolumeGroup:
     @staticmethod
     def make_volume_group_volumes(
             runner: Runner,
-            volume_name_or_id: str,
+            volume_name_or_id: str|int,
             header: Optional[VolumeGroupHeader]=None
     ) -> Tuple[Volume, Optional[Volume], list[Volume]]:
         """Create the volumes that go in a VolumeGroup object.
@@ -197,14 +199,17 @@ class VolumeGroup:
 
 
     @staticmethod
-    def make_volume_group_object(runner: Runner, volume_name_or_id: str) -> VolumeGroup:
+    def make_volume_group_object(runner: Runner, volume_name_or_id: str|int) -> VolumeGroup:
         """Create a VolumeGroup from a volume name or id.
         """
         header = VolumeGroup.make_volume_group_header(runner, volume_name_or_id)
 
         (readwrite, backup, replicas) = \
-            VolumeGroup.make_volume_group_volumes(volume_name_or_id,
-                                                  header=header)
+            VolumeGroup.make_volume_group_volumes(
+                runner,
+                volume_name_or_id,
+                header=header
+            )
 
         return VolumeGroup(
             header=header,

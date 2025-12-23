@@ -13,11 +13,6 @@ class AFSFileServerPartition:
     """
     name: str
 
-    def get_info(self):
-        """Returns the size and used (in KB).
-        """
-        pass
-
 @dataclass
 class AFSFileServer:
     """Represents an AFS File Server.
