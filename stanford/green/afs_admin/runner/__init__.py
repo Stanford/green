@@ -10,6 +10,7 @@ rather, it returns the text output of command.
 
 from __future__ import annotations
 
+import logging
 import pathlib
 
 from enum import Enum
@@ -18,9 +19,9 @@ from stanford.green.utility import run_command
 from stanford.green.utility import run_command_to_file
 from stanford.green.utility import local_env_set
 
-from stanford.green.afs_admin.config      import AFSConfig
-from stanford.green.afs_admin.file_server import AFSFileServer
-from stanford.green.afs_admin.file_server import AFSFileServerPartition
+from stanford.green.afs_admin.config import AFSConfig
+
+logger = logging.getLogger(__name__)
 
 # Typing
 from typing import Optional
@@ -51,6 +52,7 @@ class RunnerInterface(Enum):
 class Runner:
     """The Runner class.
     """
+
 
     def __init__(self, config: AFSConfig, command_interface: RunnerInterface):
         self.config            = config
@@ -137,7 +139,7 @@ class Runner:
             if (stderr):
                 command_str = ' '.join(command)
                 msg = f"error running command '{command_str}': {stderr}"
-                raise AFSRunnerError(msg)
+                raise GreenAFSRunnerError(msg)
 
             return stdout
         else:
@@ -161,27 +163,24 @@ class Runner:
 
         return stdout
 
-    def run_vos_listvol(self, file_server: AFSFileServer, output_file: pathlib.Path) -> None:
-        """Saves the raw output of "vos listvol fileserver" to a file
+    def run_vos_listvol(
+            self, file_server_identifier: str,
+            partition_name: str,
+            output_file: pathlib.Path) -> None:
+        """Saves the raw output of "vos listvol FILESERVER -format" to a file
         """
-        if (file_server.fqdn is not None):
-            server_id = file_server.fqdn
-        elif (file_server.ip_address is not None):
-            server_id = file_server.ip_address
-        elif (file_server.uuid is not None):
-            server_id = file_server.uuid
-        else:
-            msg = "cannot find any identifier for file server"
-            raise ValueError(msg)
+        parameters  = []
+        parameters += ['-server',    file_server_identifier]
+        parameters += ['-partition', partition_name]
+        parameters += ['-format']
 
-        parameters = [server_id, '-format']
         self.run_vos('listvol', parameters, output_file=output_file)
 
-    def run_vos_listpart(self, file_server: AFSFileServer) -> str:
+    def run_vos_listpart(self, file_server_identifier: str) -> str:
         """Return the output of the "vos listpart" command.
         """
         parameters = [
-            '-server', file_server.identifier(),
+            '-server', file_server_identifier,
             ]
 
         stdout = self.run_vos('listpart', parameters)
@@ -190,13 +189,13 @@ class Runner:
         return stdout
 
     def run_vos_partinfo(self,
-                         file_server: AFSFileServer,
-                         partition: AFSFileServerPartition) -> str:
+                         file_server_identifier: str,
+                         partition_name: str) -> str:
         """Return the output of the "vos partinfo" command.
         """
         parameters = [
-            '-server', file_server.identifier(),
-            '-partition', partition.name,
+            '-server', file_server_identifier,
+            '-partition', partition_name,
             ]
 
         stdout = self.run_vos('partinfo', parameters)

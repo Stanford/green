@@ -5,16 +5,20 @@ import re
 import tempfile
 import textwrap
 
-from stanford.green.afs_admin.config import AFSConfig
 
-from stanford.green.afs_admin.file_server import AFSFileServer
+### stanford.green.afs_admin imports
+from .config import AFSConfig
 
-from stanford.green.afs_admin.volume       import Volume
-from stanford.green.afs_admin.volume_type  import AFSVolumeType
-from stanford.green.afs_admin.volume_group import VolumeGroup
+from .file_server           import AFSFileServer
+from .file_server.partition import AFSFileServerPartition
 
-from stanford.green.afs_admin.resource import AFSResourceManager
-from stanford.green.afs_admin.runner   import Runner
+from .volume       import Volume
+from .volume_type  import AFSVolumeType
+from .volume_group import VolumeGroup
+
+from .resource import AFSResourceManager
+from .runner   import Runner
+### end of stanford.green.afs_admin imports
 
 
 class TestAFSAdmin(unittest.TestCase):
@@ -85,9 +89,9 @@ class TestAFSAdmin(unittest.TestCase):
     def test_parse_vos_examine_output(self) -> None:
         """Convert the output of vos examine into a volume object.
         """
-        self.assertTrue(True)
+        runner = TestAFSAdmin.runner
 
-        volumes = Volume.vos_examine_to_volume(TestAFSAdmin.vos_examine_output)
+        volumes = Volume.vos_examine_to_volume(runner, TestAFSAdmin.vos_examine_output)
         volume0 = volumes[0]
         self.assertEqual(volume0.name, 'users.a.d')
 
@@ -104,47 +108,16 @@ class TestAFSAdmin(unittest.TestCase):
         self.assertIsNotNone(volume0.name)
 
 
-    def test_make_volume_group(self) -> None:
-        """sdfgjksdf
-        """
-        runner = TestAFSAdmin.runner
-        volume_group = VolumeGroup.make_volume_group_object(runner, 'users.a.e.readonly')
-
-        self.assertIsNotNone(volume_group.header)
-        self.assertIsNotNone(volume_group.readwrite)
-
-    def test_get_file_servers(self) -> None:
-        """sdfgjksdf
-        """
-        runner = TestAFSAdmin.runner
-        afs_resource = AFSResourceManager(runner)
-
-        # Get the raw file server list
-        raw_list = runner.run_vos_listfs()
-
-        # This raw list should have several occurences of "UUID".
-        lines = raw_list.splitlines()
-        counter = 0
-        for line in lines:
-            if ("UUID" in line):
-                counter = counter + 1
-
-        # Should be several.
-        self.assertTrue(counter > 3)
-
-        ## 2. Get the list of FileServer objects.
-        file_servers = afs_resource.make_file_server_objects()
-
-        self.assertTrue(len(file_servers) > 1)
 
     def test_get_volumes(self) -> None:
         """sdfgjksdf
         """
+        print('starting test_get_volumes')
 
         runner = TestAFSAdmin.runner
         afs_resource   = TestAFSAdmin.afs_resource
 
-        file_servers = afs_resource.make_file_server_objects()
+        file_servers = AFSFileServer.make_file_server_objects(runner, fqdn_rx=r'^afssvr\d\d\.')
 
         # Convert to a mapping of fqdn to file_server object
         fqdn_to_file_server = AFSFileServer.fqdn_to_file_server(file_servers)
@@ -156,7 +129,11 @@ class TestAFSAdmin(unittest.TestCase):
         # Run the run_vos_listvol method.
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
             temp_file = pathlib.Path(tmp.name)
-            runner.run_vos_listvol(file_server_1, temp_file)
+            runner.run_vos_listvol(
+                file_server_1.identifier(),
+                file_server_1.partitions[0].name,
+                temp_file
+            )
 
             self.assertTrue(temp_file.exists())
 
@@ -168,32 +145,37 @@ class TestAFSAdmin(unittest.TestCase):
                 for line in lines:
                     self.assertTrue(len(line) > 1)
 
-        volumes = afs_resource.get_volumes(file_server_1)
+        (volumes, broken_volumes) = \
+            afs_resource.get_volumes_on_server(file_server_1)
 
         # There should be several volumes.
         self.assertTrue(len(volumes) >= 10)
 
         # Get the volumes but this time only get volumes with names
         # containing the letter "a".
-        volumes = afs_resource.get_volumes(file_server_1, rx=r'a')
+        (volumes, broken_volumes) = \
+            afs_resource.get_volumes_on_server(file_server_1, rx=r'a')
 
         # There should be several volumes.
         self.assertTrue(len(volumes) >= 10)
 
         # Get all the backup volumes. Verify that all the volumes are, in fact, backup
         # volumes.
-        volumes = afs_resource.get_volumes(file_server_1, rx=r'^.*\.backup$', rx_all=True)
+        (volumes, broken_volumes) = \
+            afs_resource.get_volumes_on_server(file_server_1, rx=r'^.*\.backup$', rx_all=True)
+
         for volume in volumes:
             self.assertEqual(volume.volume_type, AFSVolumeType.BK)
 
+        print('finished test_get_volumes')
 
     def test_get_partition_info(self) -> None:
         """sdfgjksdf
         """
-        #runner = TestAFSAdmin.runner
+        runner = TestAFSAdmin.runner
         afs_resource   = TestAFSAdmin.afs_resource
 
-        file_servers = afs_resource.make_file_server_objects()
+        file_servers = AFSFileServer.make_file_server_objects(runner, fqdn_rx=r'^afssvr\d\d\.')
 
         # Get the first non-secure file server
         file_server1 = None
@@ -206,12 +188,37 @@ class TestAFSAdmin(unittest.TestCase):
         self.assertIsNotNone(file_server1)
         assert(file_server1 is not None)
 
-        partitions = afs_resource.get_partitions(file_server1)
+        partitions = AFSFileServerPartition.get_partitions(runner, file_server1.identifier())
         for partition in partitions:
             self.assertRegex(partition.name, r'/vicep')
 
         # Get the sizes of one of these partitions.
-        (used_KB, total_KB) = afs_resource.get_partition_sizes(file_server1, partitions[0])
+        (used_KB, total_KB) = AFSFileServerPartition.get_partition_sizes(runner, file_server1.identifier(), partitions[0].name)
         self.assertRegex(str(used_KB),  r'^\d+$')
         self.assertRegex(str(total_KB), r'^\d+$')
         self.assertTrue((used_KB/total_KB) < 1.0)
+
+    def test_complicated_searches(self) -> None:
+        """Some complicated searches.
+        """
+
+        ## Search 1. Find all RW volumes in afssvr01 or afssvr02 that do not have a
+        ##           BK volume on the same volume.
+        runner = TestAFSAdmin.runner
+        afs_resource   = TestAFSAdmin.afs_resource
+
+        file_servers = AFSFileServer.make_file_server_objects(runner, fqdn_rx=r'^afssvr0(1|2)\..*$')
+
+        # Get the volumes on each server.
+        for file_server in file_servers:
+            #print(file_server)
+            (volumes, broken_volumes) = afs_resource.get_volumes_on_server(file_server, rx_all=True)
+
+        ## Search 2. Find all "broken" volumes.
+        if (True):
+            file_servers = AFSFileServer.make_file_server_objects(runner, fqdn_rx=r'^afssvr0\d\..*$')
+            for file_server in file_servers:
+                print(f"looking for broken volumes on {file_server.fqdn}")
+                (volumes, broken_volumes) = afs_resource.get_volumes_on_server(file_server, rx_all=True)
+                print(broken_volumes)
+

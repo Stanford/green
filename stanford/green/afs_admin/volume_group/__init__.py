@@ -1,3 +1,71 @@
+"""The VolumeGroup class
+
+--------
+Overview
+--------
+
+A "volume group" is a grouping of an AFS RW volume together with its BK
+(backup) volume and any of its RO (read-only) replicas. Note that there
+might be no BK or RO volumes.
+
+A volume group is defined by its "groupname" which is the name or volume
+id of the RW volume.
+
+The ``users.a.d`` RW volume has a BK volume and three RO volumes::
+
+    $ vos examine users.a.d -format
+    groupName       users.a.d
+    rwrite  2003261870  # The RW volume id
+    ronly   2003261871  # All RO volumes share the same volume id
+    backup  2003261872  # The BK volume id
+    ...
+    site_count      3
+    site_versions   same
+    site_server_0   192.168.22.15    afssvr05.stanford.edu:7005      b4263ced-74f0-436a-8384-7a37f342d424
+    site_partition_0        /vicepb
+    site_type_0     RW
+    site_state_0    new
+    site_server_1   192.168.22.15    afssvr05.stanford.edu:7005      b4263ced-74f0-436a-8384-7a37f342d424
+    site_partition_1        /vicepb
+    site_type_1     RO
+    site_state_1    new
+    site_server_2   192.168.22.24    afssvr03.stanford.edu:7005      200f0f0a-2b6f-4827-b077-47736387888e
+    site_partition_2        /vicepb
+    site_type_2     RO
+    site_state_2    new
+    ...
+
+
+--------
+Examples
+--------
+
+To create a ``VolumeGroup`` object you need the volume id from the RW, BK,
+or RO volumes::
+
+    runner = TestAFSAdminVolumeGroup.runner
+    volume_group = VolumeGroup.make_volume_group_object(runner, 'users.a.d')
+
+    # volume_group.readwrite will be a Volume object of type RW
+    # volume_group.backup    will be a Volume object of type BK
+    # volume_group.readonly  will be a _list_ of Volume objects of type RO
+
+    # Could have used 'users.a.d.readonly' (assuming that the RW volume
+    # _has_ a readonly volume).
+
+    # If the RW volume has no backup volume then volume_group.backup
+    # will be None.
+
+    # If the RW has no readonly volumes then volume_group.readonly
+    # will be the empty list.
+
+.. note::
+
+   When creating a ``VolumeGroup`` object the function makes three ``vos
+   examine ...`` calls.
+
+"""
+
 from __future__ import annotations
 
 import yaml
@@ -28,12 +96,6 @@ class VolumeGroupHeader:
 class VolumeGroup:
     """Represents a a volume group
 
-    A "volume group" is a RW volume together with its BK (backup) volume
-    and any RO (read-only) replicas. Note that there might be no BK or RO
-    volumes.
-
-    A volume group is defined by its "groupname" which is the name or
-    volume id of the RW volume.
 
     """
     def __init__(

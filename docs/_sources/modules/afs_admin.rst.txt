@@ -9,5 +9,6 @@ stanford.green.afs_admin
 
    afs_admin/config
    afs_admin/runner
+   afs_admin/volume_group
    afs_admin/volume
 

@@ -1,6 +1,9 @@
 mypy
 ruff
 
+cachetools
+types-cachetools
+
 exponential_backoff_ca
 diskcache
 filelock

@@ -1,27 +1,62 @@
 from __future__ import annotations
 
+import re
 import yaml
 
 from dataclasses import dataclass, asdict
+from functools   import cache
 
-from typing import Optional
+from cachetools      import cached, FIFOCache, Cache
+from cachetools.keys import hashkey
 
-@dataclass
-class AFSFileServerPartition:
-    """
-    name: typically something like "/vicepa" or "/vicepb".
-    """
-    name: str
+from stanford.green.afs_admin.file_server.partition  import AFSFileServerPartition
+
+from stanford.green.afs_admin.runner import Runner
+from stanford.green.afs_admin.runner import GreenAFSNoRunnerError
+
+from typing import Optional, ClassVar
+
 
 @dataclass
 class AFSFileServer:
     """Represents an AFS File Server.
 
     """
+    partitions: list[AFSFileServerPartition]
+
     fqdn:       Optional[str]
     ip_address: Optional[str]
     port:       int
-    uuid:       Optional[str]  # Non-existent file servers will have UUID None
+    uuid:       Optional[str]  # Non-existent file servers will have no UUID
+
+    runner:     Optional[Runner]
+
+    # Because there are only a few AFS file servers and many thousands of
+    # volumes, we want to cache the AFSFileServer objects. See the
+    # make_file_server_object() moethod below.
+    cache: ClassVar[FIFOCache] = FIFOCache(maxsize=100)
+
+    def __post_init__(self) -> None:
+        """After initialization populate the partitions attribute.
+
+        Skip this step if uuid is None as this means the file server is not available.
+        """
+        if (self.uuid is not None):
+            runner = self.get_runner()
+            assert(runner is not None)
+
+            partitions = AFSFileServerPartition.get_partitions(runner, self.identifier())
+            self.partitions = partitions
+
+    def get_runner(self) -> Runner:
+        """Return self.runner, raising the GreenAFSNoRunnerError error if no runner is defined.
+        """
+        if (not self.runner):
+            msg = "no Runner has been defined for this object"
+            raise GreenAFSNoRunnerError(msg)
+
+        return self.runner
+
 
     def to_yaml(self) -> str:
         my_dict = asdict(self)
@@ -29,6 +64,36 @@ class AFSFileServer:
         yaml_string = yaml.dump(my_dict, sort_keys=True)
         return yaml_string
 
+    # ### #    # ### #    # ### #    # ### #    # ### #    # ### #    # ### #    # ### #
+    @staticmethod
+    @cached(
+        cache=cache,
+        key=lambda fqdn, ip_address, port, uuid, runner: hashkey(fqdn, ip_address, port, uuid)
+    )
+    def make_file_server_object(
+            fqdn:       Optional[str],
+            ip_address: Optional[str],
+            port:       int,
+            uuid:       Optional[str],
+            runner:     Runner
+    ) -> AFSFileServer:
+        """Return an AFSFileServer object.
+
+        We cache on all parameters except runner.
+        """
+        # print(f"Creating AFSFileServer ({fqdn}, {ip_address}, {port}, {uuid}) ...")
+        file_server = AFSFileServer(
+            partitions=[],
+            fqdn=fqdn,
+            ip_address=ip_address,
+            port=int(port),
+            uuid=uuid,
+            runner=runner
+        )
+
+        return file_server
+
+    # ### #    # ### #    # ### #    # ### #    # ### #    # ### #    # ### #    # ### #
     @staticmethod
     def fqdn_to_file_server(file_servers: list[AFSFileServer]) -> dict[str, AFSFileServer]:
         """Returns a dict mapping fqdn to AFSFileServer
@@ -58,3 +123,97 @@ class AFSFileServer:
         else:
             msg = "cannot return a server identifier as all of fqdn, ip_addres, and uuid are None"
             raise ValueError(msg)
+
+    @staticmethod
+    def make_file_server_objects(runner: Runner, fqdn_rx: str = r'^.*$') -> list[AFSFileServer]:
+        """Get the list of FileServer objects.
+        """
+        uuid: str | None  # For mypy
+
+        file_server_list_raw = runner.run_vos_listfs()
+
+        # Parse the list
+        lines = file_server_list_raw.splitlines()
+
+        uuid_rx       = re.compile(r"^UUID:\s+(\S+)\S*$")
+        ip_address_rx = re.compile(r"\[((?:[0-9]{1,3}\.){3}[0-9]{1,3})\]")
+
+        next_line_is_server = False
+
+        file_servers = []
+        uuid = None
+
+        for line in lines:
+            if (next_line_is_server):
+                server_name, port = line.split(':', 1)
+                next_line_is_server = False
+
+                # Is server_name a host name or an ip address?
+                match = ip_address_rx.search(server_name)
+                if (match):
+                    ip_address = match.group(1)
+                    fqdn       = None
+                else:
+                    ip_address = None
+                    fqdn       = server_name
+
+                # Only create the AFSFileServer if fqdn_rx matches.
+                if ((fqdn is not None) and (re.search(fqdn_rx, fqdn))):
+                    file_server = AFSFileServer.make_file_server_object(
+                        fqdn=fqdn,
+                        ip_address=ip_address,
+                        port=int(port),
+                        uuid=uuid,
+                        runner=runner
+                    )
+
+                    file_servers.append(file_server)
+
+                # Reset the variables.
+                uuid = None
+
+            elif ('UUID' in line):
+                # start of entry
+                match = re.match(uuid_rx, line)
+                if (match):
+                    uuid = match.group(1)
+
+                    if (uuid.lower() == 'none'):
+                        uuid = None
+                    next_line_is_server = True
+                else:
+                    msg = f"could not parse UUID line {line}"
+                    raise Exception(msg)
+            else:
+                # Any other line we ignore.
+                next_line_is_server = False
+
+        return file_servers
+
+
+    @staticmethod
+    def serv_line_to_file_server(line: str, runner: Runner) -> AFSFileServer:
+        """Parse a "serv" line into an AFSFileServer object.
+
+        A "serv" line is line that is output by a "vos" command. It will look
+        like this::
+
+            serv   171.67.22.15  afssvr05.stanford.edu:7005  b4263ced-74f0-436a-8384-7a37f342d424
+
+        This method takes such a line and returns the corresponding
+        AFSFileServer object.
+        """
+        ip_address, fqdn_port, uuid = line.split()
+
+        # Split server into name and port:
+        fqdn, port = fqdn_port.split(':')
+
+        file_server = AFSFileServer.make_file_server_object(
+            fqdn=fqdn,
+            ip_address=ip_address,
+            port=int(port),
+            uuid=uuid,
+            runner=runner
+        )
+
+        return file_server

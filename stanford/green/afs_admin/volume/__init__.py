@@ -105,10 +105,10 @@ class Volume:
         will raise an exception.
         """
         vos_examine_output = runner.run_vos_examine(volume_name_or_id)
-        return Volume.vos_examine_to_volume(vos_examine_output)
+        return Volume.vos_examine_to_volume(runner, vos_examine_output)
 
     @staticmethod
-    def vos_examine_to_volume(vos_examine_str: str) -> list[Volume]:
+    def vos_examine_to_volume(runner: Runner, vos_examine_str: str) -> list[Volume]:
         """Given the output of a "vos examine VOLUME -format" return AFSVolume object(s).
 
         For a RW or BK volume the vos_examine_str should look like this:
@@ -164,13 +164,13 @@ class Volume:
         ## For each site return a Volume object.
         all_volumes = []
         for site_attributes in all_sites:
-            volume = Volume.volume_from_site(site_attributes)
+            volume = Volume.volume_from_site(runner, site_attributes)
             all_volumes.append(volume)
 
         return all_volumes
 
     @staticmethod
-    def volume_from_site(site_attributes: AttributeDict) -> Volume:
+    def volume_from_site(runner: Runner, site_attributes: AttributeDict) -> Volume:
 
         # To make myp happy as well as to do some basic sanity checks,
         # verify that some of the values of site_attributes are not None.
@@ -186,31 +186,15 @@ class Volume:
         assert(site_attributes['filecount'] is not None)
 
         ## volume type
-        raw_type = site_attributes['type']
-
-        if (raw_type == 'RW'):
-            volume_type = AFSVolumeType.RW
-        elif (raw_type == 'RO'):
-            volume_type = AFSVolumeType.RO
-        elif (raw_type == 'BK'):
-            volume_type = AFSVolumeType.BK
+        raw_type    = site_attributes['type']
+        if (raw_type is not None):
+            volume_type = AFSVolumeType.infer_type(raw_type)
         else:
-            msg = f"could not interpret volume type '{raw_type}'"
-            raise ValueError(msg)
+            volume_type = None
 
         ## Server attributes
         # serv    171.67.22.15    afssvr05.stanford.edu:7005      b4263ced-74f0-436a-8384-7a37f342d424
-        ip_address, fqdn_port, uuid = site_attributes['serv'].split()
-
-        # split server into name and port
-        fqdn, port = fqdn_port.split(':')
-
-        file_server = AFSFileServer(
-            fqdn=fqdn,
-            ip_address=ip_address,
-            port=int(port),
-            uuid=uuid
-        )
+        file_server = AFSFileServer.serv_line_to_file_server(site_attributes['serv'], runner)
 
         ## in use.
         if (site_attributes['inUse'] == 'Y'):
@@ -402,3 +386,35 @@ class Volume:
             'volUpdateCounter',
         ]
         return never_none_fields
+
+
+@dataclass(kw_only=True)
+class BrokenVolume:
+    """A class representing an AFS volume with incomplete information.
+
+    Use this class to store AFS volume attributes for a volume that is
+    "broken", for example, one that is missing a volume id or name.
+
+    All attributes are Optional.
+
+    """
+
+    volume_type: Optional[AFSVolumeType] = None
+    name:        Optional[str] = None
+    file_server: Optional[AFSFileServer] = None
+    partition:   Optional[str] = None
+    volume_id:   Optional[int] = None
+
+    def to_dict(self) -> dict:
+        my_dict = asdict(self)
+        return my_dict
+
+    def to_yaml(self) -> str:
+        my_dict = self.to_dict()
+
+        # "Fix" some of the values
+        if (my_dict['volume_type'] is not None):
+            my_dict['volume_type'] = str(my_dict['volume_type'])
+
+        yaml_string = yaml.dump(my_dict, sort_keys=True)
+        return yaml_string

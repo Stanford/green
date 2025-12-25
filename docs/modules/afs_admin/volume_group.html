@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>afs_admin.volume_group &#8212; stanford-green  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="afs_admin.volume" href="volume.html" />
+    <link rel="prev" title="afs_admin.runner" href="runner.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-stanford.green.afs_admin.volume_group">
+<span id="afs-admin-volume-group"></span><h1>afs_admin.volume_group<a class="headerlink" href="#module-stanford.green.afs_admin.volume_group" title="Link to this heading">¶</a></h1>
+<p>The VolumeGroup class</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>A “volume group” is a grouping of an AFS RW volume together with its BK
+(backup) volume and any of its RO (read-only) replicas. Note that there
+might be no BK or RO volumes.</p>
+<p>A volume group is defined by its “groupname” which is the name or volume
+id of the RW volume.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">users.a.d</span></code> RW volume has a BK volume and three RO volumes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ vos examine users.a.d -format
+groupName       users.a.d
+rwrite  2003261870  # The RW volume id
+ronly   2003261871  # All RO volumes share the same volume id
+backup  2003261872  # The BK volume id
+...
+site_count      3
+site_versions   same
+site_server_0   192.168.22.15    afssvr05.stanford.edu:7005      b4263ced-74f0-436a-8384-7a37f342d424
+site_partition_0        /vicepb
+site_type_0     RW
+site_state_0    new
+site_server_1   192.168.22.15    afssvr05.stanford.edu:7005      b4263ced-74f0-436a-8384-7a37f342d424
+site_partition_1        /vicepb
+site_type_1     RO
+site_state_1    new
+site_server_2   192.168.22.24    afssvr03.stanford.edu:7005      200f0f0a-2b6f-4827-b077-47736387888e
+site_partition_2        /vicepb
+site_type_2     RO
+site_state_2    new
+...
+</pre></div>
+</div>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>To create a <code class="docutils literal notranslate"><span class="pre">VolumeGroup</span></code> object you need the volume id from the RW, BK,
+or RO volumes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">runner</span> <span class="o">=</span> <span class="n">TestAFSAdminVolumeGroup</span><span class="o">.</span><span class="n">runner</span>
+<span class="n">volume_group</span> <span class="o">=</span> <span class="n">VolumeGroup</span><span class="o">.</span><span class="n">make_volume_group_object</span><span class="p">(</span><span class="n">runner</span><span class="p">,</span> <span class="s1">&#39;users.a.d&#39;</span><span class="p">)</span>
+
+<span class="c1"># volume_group.readwrite will be a Volume object of type RW</span>
+<span class="c1"># volume_group.backup    will be a Volume object of type BK</span>
+<span class="c1"># volume_group.readonly  will be a _list_ of Volume objects of type RO</span>
+
+<span class="c1"># Could have used &#39;users.a.d.readonly&#39; (assuming that the RW volume</span>
+<span class="c1"># _has_ a readonly volume).</span>
+
+<span class="c1"># If the RW volume has no backup volume then volume_group.backup</span>
+<span class="c1"># will be None.</span>
+
+<span class="c1"># If the RW has no readonly volumes then volume_group.readonly</span>
+<span class="c1"># will be the empty list.</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When creating a <code class="docutils literal notranslate"><span class="pre">VolumeGroup</span></code> object the function makes three <code class="docutils literal notranslate"><span class="pre">vos</span>
+<span class="pre">examine</span> <span class="pre">...</span></code> calls.</p>
+</div>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.volume_group.VolumeGroup">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.volume_group.</span></span><span class="sig-name descname"><span class="pre">VolumeGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#stanford.green.afs_admin.volume_group.VolumeGroupHeader" title="stanford.green.afs_admin.volume_group.VolumeGroupHeader"><span class="pre">VolumeGroupHeader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">readwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="volume.html#stanford.green.afs_admin.volume.Volume" title="stanford.green.afs_admin.volume.Volume"><span class="pre">Volume</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">backup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="volume.html#stanford.green.afs_admin.volume.Volume" title="stanford.green.afs_admin.volume.Volume"><span class="pre">Volume</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replicas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="volume.html#stanford.green.afs_admin.volume.Volume" title="stanford.green.afs_admin.volume.Volume"><span class="pre">Volume</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="runner.html#stanford.green.afs_admin.runner.Runner" title="stanford.green.afs_admin.runner.Runner"><span class="pre">Runner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.afs_admin.volume_group.VolumeGroup" title="Link to this definition">¶</a></dt>
+<dd><p>Represents a a volume group</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.volume_group.VolumeGroup.get_runner">
+<span class="sig-name descname"><span class="pre">get_runner</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="runner.html#stanford.green.afs_admin.runner.Runner" title="stanford.green.afs_admin.runner.Runner"><span class="pre">Runner</span></a></span></span><a class="headerlink" href="#stanford.green.afs_admin.volume_group.VolumeGroup.get_runner" title="Link to this definition">¶</a></dt>
+<dd><p>Return self.runner, raising the ??? error if not runner is defined.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.volume_group.VolumeGroup.make_volume_group_header">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">make_volume_group_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="runner.html#stanford.green.afs_admin.runner.Runner" title="stanford.green.afs_admin.runner.Runner"><span class="pre">Runner</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_name_or_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#stanford.green.afs_admin.volume_group.VolumeGroupHeader" title="stanford.green.afs_admin.volume_group.VolumeGroupHeader"><span class="pre">VolumeGroupHeader</span></a></span></span><a class="headerlink" href="#stanford.green.afs_admin.volume_group.VolumeGroup.make_volume_group_header" title="Link to this definition">¶</a></dt>
+<dd><p>Create a VolumeGroupHeader from a volume name or id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.volume_group.VolumeGroup.make_volume_group_object">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">make_volume_group_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="runner.html#stanford.green.afs_admin.runner.Runner" title="stanford.green.afs_admin.runner.Runner"><span class="pre">Runner</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_name_or_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#stanford.green.afs_admin.volume_group.VolumeGroup" title="stanford.green.afs_admin.volume_group.VolumeGroup"><span class="pre">VolumeGroup</span></a></span></span><a class="headerlink" href="#stanford.green.afs_admin.volume_group.VolumeGroup.make_volume_group_object" title="Link to this definition">¶</a></dt>
+<dd><p>Create a VolumeGroup from a volume name or id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.volume_group.VolumeGroup.make_volume_group_volumes">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">make_volume_group_volumes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="runner.html#stanford.green.afs_admin.runner.Runner" title="stanford.green.afs_admin.runner.Runner"><span class="pre">Runner</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_name_or_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#stanford.green.afs_admin.volume_group.VolumeGroupHeader" title="stanford.green.afs_admin.volume_group.VolumeGroupHeader"><span class="pre">VolumeGroupHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="volume.html#stanford.green.afs_admin.volume.Volume" title="stanford.green.afs_admin.volume.Volume"><span class="pre">Volume</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="volume.html#stanford.green.afs_admin.volume.Volume" title="stanford.green.afs_admin.volume.Volume"><span class="pre">Volume</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="volume.html#stanford.green.afs_admin.volume.Volume" title="stanford.green.afs_admin.volume.Volume"><span class="pre">Volume</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#stanford.green.afs_admin.volume_group.VolumeGroup.make_volume_group_volumes" title="Link to this definition">¶</a></dt>
+<dd><p>Create the volumes that go in a VolumeGroup object.</p>
+<p>Returns the Tuple (read/write volume, backup volume, replica volume(s))</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.volume_group.VolumeGroup.refresh">
+<span class="sig-name descname"><span class="pre">refresh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#stanford.green.afs_admin.volume_group.VolumeGroup.refresh" title="Link to this definition">¶</a></dt>
+<dd><p>Refresh the data in this VolumeGroup.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="stanford.green.afs_admin.volume_group.VolumeGroupHeader">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">stanford.green.afs_admin.volume_group.</span></span><span class="sig-name descname"><span class="pre">VolumeGroupHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'str'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_rwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'int'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_ronly</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'Optional[int]'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_backup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'Optional[int]'</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_rclone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="s"><span class="pre">'Optional[int]'</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#stanford.green.afs_admin.volume_group.VolumeGroupHeader" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">stanford-green</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../modules.html">stanford.green Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../afs_admin.html">stanford.green.afs_admin</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../afs_admin.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html">afs_admin.config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="runner.html">afs_admin.runner</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">afs_admin.volume_group</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.volume_group.VolumeGroup"><code class="docutils literal notranslate"><span class="pre">VolumeGroup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#stanford.green.afs_admin.volume_group.VolumeGroupHeader"><code class="docutils literal notranslate"><span class="pre">VolumeGroupHeader</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="volume.html">afs_admin.volume</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../base.html">stanford.green</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../kerberos.html">stanford.green.kerberos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ldap.html">stanford.green.ldap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../oauth2.html">stanford.green.oauth2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../zulutime.html">stanford.green.zulutime</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../../modules.html">stanford.green Modules</a><ul>
+  <li><a href="../afs_admin.html">stanford.green.afs_admin</a><ul>
+      <li>Previous: <a href="runner.html" title="previous chapter">afs_admin.runner</a></li>
+      <li>Next: <a href="volume.html" title="next chapter">afs_admin.volume</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Adam H. Lewenberg.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../../_sources/modules/afs_admin/volume_group.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
