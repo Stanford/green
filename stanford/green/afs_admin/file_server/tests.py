@@ -20,10 +20,9 @@ class TestAFSAdminFileServer(unittest.TestCase):
         """sdfgjksdf
         """
         if (TestAFSAdminFileServer.verbose):
-            print(f"starting test_get_file_servers")
+            print("starting test_get_file_servers")
 
-        runner       = TestAFSAdminFileServer.runner
-        afs_resource = AFSResourceManager(runner)
+        runner = TestAFSAdminFileServer.runner
 
         # Get the raw file server list
         raw_list = runner.run_vos_listfs()

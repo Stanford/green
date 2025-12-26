@@ -18,10 +18,11 @@ from ..volume import BrokenVolume
 from ..utility import volume_base_name
 ### end of stanford.green.afs_admin imports
 
-logger = logging.getLogger(__name__)
-
 # Typing
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
+
 
 class AFSResourceManager:
     def __init__(self, runner: Runner, verbose: bool=False):

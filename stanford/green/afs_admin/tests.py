@@ -12,9 +12,8 @@ from .config import AFSConfig
 from .file_server           import AFSFileServer
 from .file_server.partition import AFSFileServerPartition
 
-from .volume       import Volume
-from .volume_type  import AFSVolumeType
-from .volume_group import VolumeGroup
+from .volume      import Volume
+from .volume_type import AFSVolumeType
 
 from .resource import AFSResourceManager
 from .runner   import Runner
@@ -173,7 +172,6 @@ class TestAFSAdmin(unittest.TestCase):
         """sdfgjksdf
         """
         runner = TestAFSAdmin.runner
-        afs_resource   = TestAFSAdmin.afs_resource
 
         file_servers = AFSFileServer.make_file_server_objects(runner, fqdn_rx=r'^afssvr\d\d\.')
 

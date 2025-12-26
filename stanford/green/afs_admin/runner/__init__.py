@@ -21,10 +21,10 @@ from stanford.green.utility import local_env_set
 
 from stanford.green.afs_admin.config import AFSConfig
 
-logger = logging.getLogger(__name__)
-
 # Typing
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 class GreenAFSNoRunnerError(Exception):
     """Raise when an expected Runner is missing.

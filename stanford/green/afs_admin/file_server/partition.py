@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 from stanford.green.afs_admin.runner import Runner
 

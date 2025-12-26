@@ -4,9 +4,8 @@ import re
 import yaml
 
 from dataclasses import dataclass, asdict
-from functools   import cache
 
-from cachetools      import cached, FIFOCache, Cache
+from cachetools      import cached, FIFOCache
 from cachetools.keys import hashkey
 
 from stanford.green.afs_admin.file_server.partition  import AFSFileServerPartition
