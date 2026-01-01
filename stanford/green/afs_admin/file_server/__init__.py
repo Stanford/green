@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 import yaml
 
@@ -15,6 +16,7 @@ from stanford.green.afs_admin.runner import GreenAFSNoRunnerError
 
 from typing import Optional, ClassVar
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class AFSFileServer:
@@ -25,7 +27,7 @@ class AFSFileServer:
 
     fqdn:       Optional[str]
     ip_address: Optional[str]
-    port:       int
+    port:       int            # The volume server port (usually 7005)
     uuid:       Optional[str]  # Non-existent file servers will have no UUID
 
     runner:     Optional[Runner]
@@ -126,66 +128,56 @@ class AFSFileServer:
     @staticmethod
     def make_file_server_objects(runner: Runner, fqdn_rx: str = r'^.*$') -> list[AFSFileServer]:
         """Get the list of FileServer objects.
+
         """
         uuid: str | None  # For mypy
 
-        file_server_list_raw = runner.run_vos_listfs()
+        mpfx = 'make_file_server_objects'
+
+        file_servers = []
+
+        # Reset lap counter so we can see how many external command
+        # were called.
+        runner.counter.reset_lap()
+
+        file_server_list_raw = runner.run_vos_eachfs()
 
         # Parse the list
         lines = file_server_list_raw.splitlines()
 
-        uuid_rx       = re.compile(r"^UUID:\s+(\S+)\S*$")
-        ip_address_rx = re.compile(r"\[((?:[0-9]{1,3}\.){3}[0-9]{1,3})\]")
-
-        next_line_is_server = False
-
-        file_servers = []
-        uuid = None
-
+        number_skipped = 0
         for line in lines:
-            if (next_line_is_server):
-                server_name, port = line.split(':', 1)
-                next_line_is_server = False
+            if (not line.strip()):
+                # Skip blank lines.
+                next
+            else:
+                fqdn, port, ip_address, uuid = line.split(',')
 
-                # Is server_name a host name or an ip address?
-                match = ip_address_rx.search(server_name)
-                if (match):
-                    ip_address = match.group(1)
-                    fqdn       = None
-                else:
-                    ip_address = None
-                    fqdn       = server_name
-
-                # Only create the AFSFileServer if fqdn_rx matches.
-                if ((fqdn is not None) and (re.search(fqdn_rx, fqdn))):
-                    file_server = AFSFileServer.make_file_server_object(
-                        fqdn=fqdn,
-                        ip_address=ip_address,
-                        port=int(port),
-                        uuid=uuid,
-                        runner=runner
-                    )
-
-                    file_servers.append(file_server)
-
-                # Reset the variables.
+            if (uuid.upper() == 'NO_UUID'):
                 uuid = None
 
-            elif ('UUID' in line):
-                # start of entry
-                match = re.match(uuid_rx, line)
-                if (match):
-                    uuid = match.group(1)
+            # Only create the AFSFileServer if fqdn_rx matches.
+            if ((fqdn is not None) and (re.search(fqdn_rx, fqdn))):
+                file_server = AFSFileServer.make_file_server_object(
+                    fqdn=fqdn,
+                    ip_address=ip_address,
+                    port=int(port),
+                    uuid=uuid,
+                    runner=runner
+                )
 
-                    if (uuid.lower() == 'none'):
-                        uuid = None
-                    next_line_is_server = True
-                else:
-                    msg = f"could not parse UUID line {line}"
-                    raise Exception(msg)
+                file_servers.append(file_server)
             else:
-                # Any other line we ignore.
-                next_line_is_server = False
+                number_skipped += 1
+
+        # How many commands were used?
+        commands_used = runner.counter.get_lap_count()
+        msg = f"[{mpfx}] used {commands_used} commands"
+        logger.info(msg)
+
+        total_found = number_skipped + len(file_servers)
+        msg = f"[{mpfx}] found {total_found} file servers, skipped {number_skipped} (filter: '{fqdn_rx}')"
+        logger.info(msg)
 
         return file_servers
 

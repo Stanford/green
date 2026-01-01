@@ -37,8 +37,14 @@ class TestAFSAdminFileServer(unittest.TestCase):
         # Should be several.
         self.assertTrue(counter > 3)
 
-        ## 2. Get the list of FileServer objects.
+        ## 2. Get the list of FileServer objects (only get those that start 'afssvr').
         file_servers = AFSFileServer.make_file_server_objects(runner, fqdn_rx='^afssvr\d\d\..*$')
 
-        self.assertTrue(len(file_servers) > 1)
+        self.assertTrue(len(file_servers) > 2)
+
+        # Check that each AFSFileServer object has a fqdn that matches our above regex and
+        # has a non-None UUID.
+        for file_server in file_servers:
+            self.assertRegex(file_server.fqdn, r'^afssvr\d\d\..*$')
+            self.assertIsNotNone(file_server.uuid)
 

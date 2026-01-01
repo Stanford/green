@@ -79,7 +79,7 @@ class TestAFSAdmin(unittest.TestCase):
     vos_examine_output=textwrap.dedent(vos_examine_output).strip()
 
     config       = AFSConfig(cell='ir.stanford.edu')
-    runner       = Runner.make_runner_direct(config)
+    runner       = Runner.make_runner_direct(config, verbose=True)
     afs_resource = AFSResourceManager(runner, verbose=verbose)
 
     def test_basic(self) -> None:
@@ -216,6 +216,7 @@ class TestAFSAdmin(unittest.TestCase):
         if (True):
             file_servers = AFSFileServer.make_file_server_objects(runner, fqdn_rx=r'^afssvr0\d\..*$')
             for file_server in file_servers:
+                print(f"counter is {runner.counter.get_count()}")
                 print(f"looking for broken volumes on {file_server.fqdn}")
                 (volumes, broken_volumes) = afs_resource.get_volumes_on_server(file_server, rx_all=True)
                 print(broken_volumes)

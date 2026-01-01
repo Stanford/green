@@ -32,7 +32,7 @@ pylint:  ## Run Python linter pylint
 #	&& ./run-tests.sh
 
 .PHONY: tests
-tests: ## Run unit tests
+tests: ## Run unit tests (set START_DIR to directory)
 	@source ${BUILD_DIR}/venv/bin/activate \
 	&& cd .. \
 	&& python run-tests.py --start-dir=${START_DIR}

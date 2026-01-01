@@ -1,9 +1,13 @@
 import argparse
+import logging
 import sys
 import unittest
 
 from pathlib import Path
 
+# Set log-level
+logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.DEBUG)
 
 ## Set path to include stanford/green:
 # Add parent directory as a search path.

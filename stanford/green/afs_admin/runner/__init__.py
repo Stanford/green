@@ -3,7 +3,7 @@
 The Runner class is used to run command-line commands like
 ``vos``, ``fs``, ``pts``, etc.
 
-This class does _not_ return AFS objects like Volume or AFSFileServer,
+This class does *not* return AFS objects like Volume or AFSFileServer,
 rather, it returns the text output of command.
 
 """
@@ -20,6 +20,7 @@ from stanford.green.utility import run_command_to_file
 from stanford.green.utility import local_env_set
 
 from stanford.green.afs_admin.config import AFSConfig
+from stanford.green.afs_admin.runner.counter import CommandCounter
 
 # Typing
 from typing import Optional
@@ -39,10 +40,6 @@ class GreenAFSRunnerError(Exception):
 class RunnerInterface(Enum):
     """The kind of interface the Runner uses.
 
-    Currently there are only two recognized interfaces: "direct" and "afsapi".
-
-    The "direct" interface uses AFS program calls (``vos``, ``pts``, etc.). The
-    "afsapi" uses calls to the AFS-API service.
 
     The only interface implemented so far is "direct".
     """
@@ -51,12 +48,37 @@ class RunnerInterface(Enum):
 
 class Runner:
     """The Runner class.
+
+    :param config: an AFSConfig object; this is required as the AFSConfig object
+      tells the Runner object which cell to use.
+    :type config: AFSConfig
+
+    :param command_interface: which interface this code uses to get AFS
+      information. Currently there are only two recognized interfaces:
+      "direct" and "afsapi".
+
+      The "direct" interface uses AFS program calls (``vos``, ``pts``, etc.). The
+      "afsapi" uses calls to the AFS-API service.
+    :type command_interface: RunnerInterface
+
+    :param verbose: turn on verbose mode (more logging).
+    :type verbose: bool
+
+    :param counter: keep track of the number of external commands called. This
+      is helpful when evaluating performance. This is an
+    :type counter: int
+
     """
 
+    counter = CommandCounter()
 
-    def __init__(self, config: AFSConfig, command_interface: RunnerInterface):
+    def __init__(self, config: AFSConfig, command_interface: RunnerInterface, verbose: bool=False):
         self.config            = config
         self.command_interface = command_interface
+
+        self.verbose = verbose
+
+        Runner.counter.verbose = self.verbose
 
     def __str__(self) -> str:
         fields = []
@@ -84,8 +106,8 @@ class Runner:
         return self.is_afsapi()
 
     @staticmethod
-    def make_runner_direct(config: AFSConfig) -> Runner:
-        return Runner(config, RunnerInterface.direct)
+    def make_runner_direct(config: AFSConfig, verbose: bool=False) -> Runner:
+        return Runner(config, RunnerInterface.direct, verbose)
 
     ## ## #    ## ## #    ## ## #    ## ## #    ## ## #    ## ## #    ## ## #    ## ## #
 
@@ -131,11 +153,15 @@ class Runner:
 
             with local_env_set('TZ', 'UTC'):
                 if (output_file is None):
+                    msg = f"about to run direct command {command}"
+                    logger.debug(msg)
+
                     stdout, stderr, rc = run_command(command)
                 else:
                     stderr, rc = run_command_to_file(command, output_file)
                     stdout = None
 
+            self.counter.increment()
             if (stderr):
                 command_str = ' '.join(command)
                 msg = f"error running command '{command_str}': {stderr}"
@@ -199,6 +225,44 @@ class Runner:
             ]
 
         stdout = self.run_vos('partinfo', parameters)
+        assert(stdout is not None)
+
+        return stdout
+
+    def run_vos_eachfs(
+            self,
+            format_string: Optional[str]='%hv,%pv,%nhv,%U'
+    ) -> str:
+        """Return a list of File Servers using the "vos eachfs" command.
+
+        The default format string is ``%hv,%pv,%nhv,%U`` which translates
+        to
+
+          hostname,volume server port,ip address,UUID
+
+        Example output:
+
+          171.64.16.64,7005,171.64.16.64,NO_UUID
+          afssvr-sec01.stanford.edu,7005,171.67.217.5,93420e13-71f9-4d7a-8051-786c640e6c5b
+          afssvr06.stanford.edu,7005,171.67.22.19,b48bfb68-5216-402c-b1c5-b32cfa5ed136
+          afssvr07.stanford.edu,7005,171.67.22.17,ffee8568-7446-48ad-baea-7365fba78080
+
+        See the man page for vos_eachfs for more information on the format
+        string.
+
+        If ``format_string`` is set to None then the default format for
+        vos_eachfs will be used.
+
+        Note that if the File Server does not have a UUID the string
+        "NO_UUID" will be shown.
+
+        """
+        parameters = []
+
+        if (format_string is not None):
+            parameters += ['-format', format_string]
+
+        stdout = self.run_vos('eachfs', parameters)
         assert(stdout is not None)
 
         return stdout

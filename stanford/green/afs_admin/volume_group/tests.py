@@ -12,7 +12,7 @@ class TestAFSAdminVolumeGroup(unittest.TestCase):
     verbose = False
 
     config       = AFSConfig(cell='ir.stanford.edu')
-    runner       = Runner.make_runner_direct(config)
+    runner       = Runner.make_runner_direct(config, verbose=verbose)
     afs_resource = AFSResourceManager(runner, verbose=verbose)
 
     def test_make_volume_group(self) -> None:
