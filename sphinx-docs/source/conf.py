@@ -15,6 +15,7 @@ author = 'Adam H. Lewenberg'
 
 extensions = [
 'sphinx.ext.autodoc',
+'sphinx.ext.viewcode',
 ]
 
 templates_path = ['_templates']

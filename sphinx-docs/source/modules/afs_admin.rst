@@ -8,6 +8,7 @@ stanford.green.afs_admin
    :maxdepth: 2
 
    afs_admin/config
+   afs_admin/file_server
    afs_admin/runner
    afs_admin/volume_group
    afs_admin/volume

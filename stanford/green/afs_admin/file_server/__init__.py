@@ -1,3 +1,6 @@
+"""File Server
+"""
+
 from __future__ import annotations
 
 import logging
@@ -112,8 +115,8 @@ class AFSFileServer:
     def identifier(self) -> str:
         """Returns the best "name" for this file server.
 
-        Returns the first of fqdn, uuid, or ip_address that is not None.
-        If all three are None raises a ValueError.
+        Returns the first of ``fqdn``, ``uuid``, or ``ip_address`` that is not ``None``.
+        If all three are ``None`` raises a ``ValueError``.
         """
         if (self.fqdn is not None):
             return self.fqdn

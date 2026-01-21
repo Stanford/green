@@ -172,7 +172,7 @@ class Volume:
     @staticmethod
     def volume_from_site(runner: Runner, site_attributes: AttributeDict) -> Volume:
 
-        # To make myp happy as well as to do some basic sanity checks,
+        # To make mypy happy as well as to do some basic sanity checks,
         # verify that some of the values of site_attributes are not None.
         assert(site_attributes['id'] is not None)
         assert(site_attributes['serv'] is not None)

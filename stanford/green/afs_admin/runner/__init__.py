@@ -125,15 +125,15 @@ class Runner:
         :param vos_arguments: the rest of the command-line arguments to pass to ``vos subcommand``.
         :type prefix: list[str]
 
-        :param output_file: if this parameter is passed rather than returning the
-          standard output string save the standard output to the file specified by
+        :param output_file: if this parameter is passed, instead of returning the
+          standard output as a string save standard output to the file specified by
           ``output_file``; note that this will *overwrite* ``output_file``.
         :type prefix: Optional[str]
 
         :return: the standard output of the ``vos`` command unless the ``output_file`` parameter
           is provided, in which case nothing is returned.
 
-        If the output_file is provided this function returns ``None``.
+        If the ``output_file`` parameter is provided this function returns ``None``.
 
         We run all vos commands with the :envvar:`TZ` environment variable set to
         ``UTC``.
@@ -233,28 +233,31 @@ class Runner:
             self,
             format_string: Optional[str]='%hv,%pv,%nhv,%U'
     ) -> str:
-        """Return a list of File Servers using the "vos eachfs" command.
+        """Return a list of file server information using the ``vos eachfs`` command.
 
-        The default format string is ``%hv,%pv,%nhv,%U`` which translates
-        to
+        :param format_string: the output format. The default format string is ``%hv,%pv,%nhv,%U``
+          which translates to ``hostname,volume server port,ip address,UUID``.
+          If ``format_string`` is set to ``None`` then the default format for
+          ``vos_eachfs`` will be used.
+          See the `vos eachfs manpage`_ for more information on the format string.
 
-          hostname,volume server port,ip address,UUID
+        .. _vos eachfs manpage: https://www.auristor.com/documentation/man/linux/1/vos_eachfs.html
 
-        Example output:
+        :type prefix: Optional[str]
 
-          171.64.16.64,7005,171.64.16.64,NO_UUID
-          afssvr-sec01.stanford.edu,7005,171.67.217.5,93420e13-71f9-4d7a-8051-786c640e6c5b
-          afssvr06.stanford.edu,7005,171.67.22.19,b48bfb68-5216-402c-b1c5-b32cfa5ed136
-          afssvr07.stanford.edu,7005,171.67.22.17,ffee8568-7446-48ad-baea-7365fba78080
+        :return: the standard output of the ``vos eachfs`` command.
 
-        See the man page for vos_eachfs for more information on the format
-        string.
+        **Example:** Here is how the output string will look (with the default format string):
 
-        If ``format_string`` is set to None then the default format for
-        vos_eachfs will be used.
+        .. code-block:: python
 
-        Note that if the File Server does not have a UUID the string
-        "NO_UUID" will be shown.
+            171.64.16.64,7005,171.64.16.64,NO_UUID
+            afssvr-sec01.stanford.edu,7005,171.67.217.5,93420e13-71f9-4d7a-8051-786c640e6c5b
+            afssvr06.stanford.edu,7005,171.67.22.19,b48bfb68-5216-402c-b1c5-b32cfa5ed136
+            afssvr07.stanford.edu,7005,171.67.22.17,ffee8568-7446-48ad-baea-7365fba78080
+
+        .. note:: If the file server does not have a UUID the string
+          "NO_UUID" will be shown.
 
         """
         parameters = []
