@@ -5,3 +5,6 @@ __pycache__
 .last_sync_epoch
 prod/build
 sphinx-docs/build
+
+docs/_modules/
+docs/_sources
