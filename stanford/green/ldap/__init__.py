@@ -1,4 +1,4 @@
-"""Useful LDAP functions.11
+"""Useful LDAP functions.
 
 --------
 Overview
@@ -44,23 +44,20 @@ information (this assumes you have a valid Kerberos context)::
   results = ldap1.sunetid_info('jstanford')
 
 """
-# pylint: disable=invalid-name  (we want to allow the variable named "dn")
-# pylint: disable=superfluous-parens
 
 import logging
-import ldap      # type: ignore
-import ldap.sasl # type: ignore
+import ldap         # type: ignore
+import ldap.filter  # type: ignore
+import ldap.sasl    # type: ignore
 
-## TYPING
-from typing import Optional, Any, Tuple  # pylint: disable=wrong-import-order
-## END OF TYPING
+from typing import Optional, Any
 
 """
 An LDAPValueDict represents a set of attributes read from
 LDAP. Attributes can be single-valued or multi-valued, hence
 "str|list[str]".
 """
-LDAPAttributeDict = dict[str, str|list[str]]
+LDAPAttributeDict = dict[str, str | list[str]]
 
 """
 An LDAPResult is a result that maps DNs to LDAPAttributeDicts.
@@ -76,22 +73,25 @@ Example of an LDAPResult
     {
       'displayName': 'Jane Stanford',
       'sn': 'Stanford',
-    },}
-
+    },
+}
 """
 LDAPResult = dict[str, LDAPAttributeDict]
-## END OF TYPING
 
 ## Set up logging
 logger = logging.getLogger(__name__)
 
+
 class GreenUnknownLDAPAttribute(Exception):
-    """Used when an unrecognized attribute found"""
-    pass
+    """Used when an unrecognized attribute found."""
+
 
 class GreenLDAPNoResultsException(Exception):
-    """Used when no LDAP results are found"""
-    pass
+    """Used when no LDAP results are found."""
+
+
+class GreenLDAPScopeError(Exception):
+    """Used when an invalid LDAP scope string is provided."""
 
 
 """
@@ -153,19 +153,17 @@ ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY = {
     'suSeasStatus': 'single',
     'suSeasSunetID': 'multi',
     'suSeasSunetIDPreferred': 'single',
-    'SuSeasEmailSystem': 'single',
+    'suSeasEmailSystem': 'single',  # Fixed: was 'SuSeasEmailSystem' (wrong casing)
     'suSeasUriRouteTo': 'single',
     'suService': 'multi',
     'uid': 'single',
     'uidNumber': 'single',
+    # Additional attributes not on the data definition page.
+    'dn': 'single',
+    'suPrivilegeGroup': 'multi',
+    'suEmailSMTPEnabled': 'single',
+    'suKerberosPasswordExpiration': 'single',
 }
-
-# Add some attributes not on the data definition page.
-ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY['dn'] = 'single'
-ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY['suPrivilegeGroup'] = 'multi'
-ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY['suSeasEmailSystem'] = 'single'
-ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY['suEmailSMTPEnabled'] = 'single'
-ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY['suKerberosPasswordExpiration'] = 'single'
 
 PEOPLE_ATTRIBUTE_TO_MULTIPLICITY = {
     'cn': 'multi',
@@ -213,7 +211,8 @@ PEOPLE_ATTRIBUTE_TO_MULTIPLICITY = {
     'suFacultyAppointment': 'single',
     'suFacultyAppointmentShort': 'single',
     'suGeneralID': 'multi',
-    'suGivenName, suGN': 'multi',
+    'suGivenName': 'multi',  # Fixed: was 'suGivenName, suGN' (comma-separated key bug)
+    'suGN': 'multi',         # Fixed: split into its own entry
     'suGwAffilAddress1': 'single',
     'suGwAffilAddress2': 'single',
     'suGwAffilAddress3': 'single',
@@ -335,7 +334,7 @@ PEOPLE_ATTRIBUTE_TO_MULTIPLICITY = {
     'suPrimaryOrganizationNameL2': 'single',
 }
 
-# Add in the suGAL attributes. These attributes have the same multiplicty
+# Add in the suGAL attributes. These attributes have the same multiplicity
 # as the attributes they are derived from.
 SUGAL_BASE_ATTRIBUTES = {
     'cn',
@@ -378,10 +377,10 @@ SUGAL_BASE_ATTRIBUTES = {
     'telephoneNumber',
 }
 
-SUGAL_ATTRIBUTE_TO_MULTIPLICITY = {}
-for attribute_name in SUGAL_BASE_ATTRIBUTES:
-    SUGAL_ATTRIBUTE_TO_MULTIPLICITY[f"suGAL{attribute_name}"] = \
-        PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attribute_name]
+SUGAL_ATTRIBUTE_TO_MULTIPLICITY = {
+    f"suGAL{attr}": PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attr]
+    for attr in SUGAL_BASE_ATTRIBUTES
+}
 
 PEOPLE_ATTRIBUTE_TO_MULTIPLICITY_EXTRA = {
     'dn': 'single',
@@ -397,7 +396,6 @@ PEOPLE_ATTRIBUTE_TO_MULTIPLICITY_EXTRA = {
     'eduPersonOrgUnitDN': 'single',
     'suOU': 'multi',
     'suMobileID': 'single',
-    'suGivenName': 'multi',
     'suGwAffilQBFR1': 'single',
 }
 
@@ -411,11 +409,21 @@ BASEDN          = "dc=stanford,dc=edu"
 BASEDN_ACCOUNTS = "cn=accounts,dc=stanford,dc=edu"
 BASEDN_PEOPLE   = "cn=people,dc=stanford,dc=edu"
 
+# Valid LDAP scope strings mapped to python-ldap constants.
+_SCOPE_MAP = {
+    'sub':      ldap.SCOPE_SUBTREE,
+    'subtree':  ldap.SCOPE_SUBTREE,
+    'base':     ldap.SCOPE_BASE,
+    'one':      ldap.SCOPE_ONELEVEL,
+    'onelevel': ldap.SCOPE_ONELEVEL,
+}
+
+
 def account_attribute_is_single_valued(attribute_name: str) -> bool:
     """Return True if `attribute_name` is a single-valued account-tree attribute, False otherwise.
 
     :param attribute_name: a string
-    :type prefix: str
+    :type attribute_name: str
     :return: ``True`` if `attribute_name` is single-valued and a valid
       account-tree attribute, ``False`` otherwise.
 
@@ -423,17 +431,18 @@ def account_attribute_is_single_valued(attribute_name: str) -> bool:
       account-tree attribute name.
 
     """
-    if (attribute_name in ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY):
-        return (ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
+    if attribute_name in ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY:
+        return ACCOUNT_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single'
 
     msg = f"'{attribute_name}' is not an account-tree attribute"
     raise GreenUnknownLDAPAttribute(msg)
 
+
 def account_attribute_is_multi_valued(attribute_name: str) -> bool:
-    """Return True if `attribute_name` is multi-valued account-tree, False otherwise.
+    """Return True if `attribute_name` is a multi-valued account-tree attribute, False otherwise.
 
     :param attribute_name: a string
-    :type prefix: str
+    :type attribute_name: str
     :return: ``True`` if `attribute_name` is a valid
       account-tree attribute and is multi-valued, ``False`` otherwise.
 
@@ -443,56 +452,59 @@ def account_attribute_is_multi_valued(attribute_name: str) -> bool:
     """
     return not account_attribute_is_single_valued(attribute_name)
 
+
 def people_attribute_is_single_valued(attribute_name: str) -> bool:
-    """Return True if `attribute_name` is single-valued people-tree, False otherwise.
+    """Return True if `attribute_name` is a single-valued people-tree attribute, False otherwise.
 
     :param attribute_name: a string
-    :type prefix: str
+    :type attribute_name: str
     :return: ``True`` if `attribute_name` is single-valued, ``False`` otherwise.
 
     :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
       people-tree attribute name.
     """
-    if (attribute_name in PEOPLE_ATTRIBUTE_TO_MULTIPLICITY):
-        return (PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
+    if attribute_name in PEOPLE_ATTRIBUTE_TO_MULTIPLICITY:
+        return PEOPLE_ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single'
 
     msg = f"'{attribute_name}' is not a people-tree attribute"
     raise GreenUnknownLDAPAttribute(msg)
 
+
 def people_attribute_is_multi_valued(attribute_name: str) -> bool:
-    """Return True if `attribute_name` is single-valued, False otherwise.
+    """Return True if `attribute_name` is a multi-valued people-tree attribute, False otherwise.
 
     :param attribute_name: a string
-    :type prefix: str
-    :return: ``True`` if `attribute_name` is single-valued, ``False`` otherwise.
+    :type attribute_name: str
+    :return: ``True`` if `attribute_name` is multi-valued, ``False`` otherwise.
 
     :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
       people-tree attribute name.
     """
     return not people_attribute_is_single_valued(attribute_name)
 
+
 def attribute_is_single_valued(attribute_name: str) -> bool:
     """Return True if `attribute_name` is single-valued, False otherwise.
 
     :param attribute_name: a string
-    :type prefix: str
+    :type attribute_name: str
     :return: ``True`` if `attribute_name` is single-valued, ``False`` otherwise.
 
     :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
       attribute name.
     """
-
-    if (attribute_name in ATTRIBUTE_TO_MULTIPLICITY):
-        return (ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single')
+    if attribute_name in ATTRIBUTE_TO_MULTIPLICITY:
+        return ATTRIBUTE_TO_MULTIPLICITY[attribute_name] == 'single'
 
     msg = f"'{attribute_name}' is not a recognized attribute"
     raise GreenUnknownLDAPAttribute(msg)
+
 
 def attribute_is_multi_valued(attribute_name: str) -> bool:
     """Return True if `attribute_name` is multi-valued, False otherwise.
 
     :param attribute_name: a string
-    :type prefix: str
+    :type attribute_name: str
     :return: ``True`` if `attribute_name` is multi-valued, ``False`` otherwise.
 
     :raises GreenUnknownLDAPAttribute: if `attribute_name` is not a valid
@@ -500,25 +512,52 @@ def attribute_is_multi_valued(attribute_name: str) -> bool:
     """
     return not attribute_is_single_valued(attribute_name)
 
-class LDAP():
+
+class LDAP:
     """The LDAP class.
 
     :param host: the LDAP host name, defaults to ``ldap.stanford.edu``
-    :type prefix: str
+    :type host: str
 
     :param connect_on_init: set to ``True`` to connect ``host`` on object
       creation, ``False`` otherwise, defaults to ``True``.
-    :type prefix: bool
+    :type connect_on_init: bool
+
+    Supports use as a context manager::
+
+      with LDAP() as conn:
+          results = conn.sunetid_info('jstanford')
 
     """
 
-    def __init__(self,
-                 host: str = 'ldap.stanford.edu',
-                 connect_on_init: bool = True):
+    def __init__(
+        self,
+        host: str = 'ldap.stanford.edu',
+        connect_on_init: bool = True,
+    ):
         self.host = host
+        self.ldap: Any = None
 
-        if (connect_on_init):
+        if connect_on_init:
             self.ldap = self.connect()
+
+    def __enter__(self) -> 'LDAP':
+        if self.ldap is None:
+            self.ldap = self.connect()
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        self.close()
+
+    def close(self) -> None:
+        """Unbind and close the LDAP connection."""
+        if self.ldap is not None:
+            try:
+                self.ldap.unbind_s()
+            except ldap.LDAPError:
+                logger.debug("error during LDAP unbind", exc_info=True)
+            finally:
+                self.ldap = None
 
     def connect(self) -> Any:
         """Create a connected ldap object.
@@ -526,68 +565,63 @@ class LDAP():
         Currently, the only connection method is using GSSAPI. That is, there
         must be a valid Kerberos context.
         """
-        ldap_conn = ldap.initialize(
-            f"ldap://{self.host}"
-        )
+        logger.debug("making LDAP SASL bind to %s", self.host)
+        ldap_conn = ldap.initialize(f"ldap://{self.host}")
         ldap_conn.sasl_non_interactive_bind_s('GSSAPI')
-        logger.debug(f"making LDAP SASL bind to {self.host}")
 
         return ldap_conn
 
-    def scope_normalize(self, scope: str) -> Any:
-        """Return the ldap-package's version of the scope based on the passed in string."""
-        scopes = {
-            'sub':  ldap.SCOPE_SUBTREE,   # pylint: disable=no-member
-            'base': ldap.SCOPE_BASE,      # pylint: disable=no-member
-            'one':  ldap.SCOPE_ONELEVEL,  # pylint: disable=no-member
-        }
+    @staticmethod
+    def scope_normalize(scope: str) -> int:
+        """Return the ldap-package's scope constant for the given string.
 
-        # Add some aliases
-        scopes['subtree']  = scopes['sub']
-        scopes['onelevel'] = scopes['one']
+        :param scope: one of ``'sub'``, ``'subtree'``, ``'base'``, ``'one'``, or ``'onelevel'``
+        :type scope: str
 
-        return scopes[scope]
+        :raises GreenLDAPScopeError: if `scope` is not a recognized scope string.
+        """
+        try:
+            return _SCOPE_MAP[scope]
+        except KeyError:
+            valid = ', '.join(sorted(_SCOPE_MAP))
+            raise GreenLDAPScopeError(
+                f"'{scope}' is not a valid LDAP scope. Choose from: {valid}"
+            ) from None
 
     def process_result(
-            self,
-            result: Tuple[str, dict[str, list[Any]]]
-    ) -> Tuple[str, LDAPAttributeDict]:
-        """Normalize an LDAP result including converting arrays into strings.
-        """
+        self,
+        result: tuple[str, dict[str, list[Any]]],
+    ) -> tuple[str, LDAPAttributeDict]:
+        """Normalize an LDAP result including converting byte-strings to utf-8 strings."""
 
-        dn     = result[0]
-        logger.info(f"dn is {dn}")
+        dn = result[0]
+        logger.info("dn is %s", dn)
 
         values = result[1]
 
-        return_values = {}
-        for attribute in values.keys():
+        return_values: LDAPAttributeDict = {}
+        for attribute, raw_values in values.items():
             # Skip objectClass
-            if (attribute == 'objectClass'):
+            if attribute == 'objectClass':
                 continue
 
-            if (attribute_is_single_valued(attribute)):
-                single_value = values[attribute][0].decode("utf-8")
+            if attribute_is_single_valued(attribute):
+                single_value = raw_values[0].decode("utf-8")
                 return_values[attribute] = single_value
-                logger.debug(f"{attribute}: {single_value}")
+                logger.debug("%s: %s", attribute, single_value)
             else:
-                multi_values = values[attribute]
-                multi_values_decoded = []
-                for multi_value in multi_values:
-                    multi_values_decoded.append(multi_value.decode("utf-8"))
-
-                return_values[attribute] = multi_values_decoded
-                logger.debug(f"{attribute}: {multi_values_decoded}")
+                decoded = [v.decode("utf-8") for v in raw_values]
+                return_values[attribute] = decoded
+                logger.debug("%s: %s", attribute, decoded)
 
         return (dn, return_values)
 
-
     def search(
-            self,
-            basedn:    str,
-            filterstr: str='(objectClass=*)',
-            attrlist:  Optional[list[str]]=None,
-            scope:     str='sub'
+        self,
+        basedn: str,
+        filterstr: str = '(objectClass=*)',
+        attrlist: Optional[list[str]] = None,
+        scope: str = 'sub',
     ) -> LDAPResult:
         """Perform an LDAP search.
 
@@ -600,7 +634,7 @@ class LDAP():
         :param attrlist: a list of attributes to return
         :type attrlist: list[str]
 
-        :param scope: the search scope; must be one "sub", "base", or "one".
+        :param scope: the search scope; must be one of ``'sub'``, ``'base'``, or ``'one'``.
         :type scope: str
 
         This method is a thin wrapper around the ldap package's search method. The
@@ -613,7 +647,7 @@ class LDAP():
 
           basedn = "dc=stanford,dc=edu"
           filterstr = "uid=jstanford"
-          results = search(basdn, filterstr=filterstr)
+          results = search(basedn, filterstr=filterstr)
           #
           # results will look something like
           # {
@@ -628,62 +662,72 @@ class LDAP():
 
         Note that the attributes are returned as either a string (for
         single-valued attributes) or a list (for multi-valued attributes).
-        Furthermore, LDAP returns vaules as byte-strings so this method
+        Furthermore, LDAP returns values as byte-strings so this method
         converts these byte-strings into regular utf8 strings.
 
         If no results are returned this method raises the
-        `GreenLDAPNoResultsException` exception.
+        :py:exc:`~GreenLDAPNoResultsException` exception.
 
         """
-        search_scope  = self.scope_normalize(scope)
+        search_scope = self.scope_normalize(scope)
 
-        logger.debug(f"basedn:         {basedn}")
-        logger.debug(f"search scope:   {search_scope}")
-        logger.debug(f"search filter:  {filterstr}")
-        logger.debug(f"attribute list: {attrlist}")
+        logger.debug("basedn:         %s", basedn)
+        logger.debug("search scope:   %s", search_scope)
+        logger.debug("search filter:  %s", filterstr)
+        logger.debug("attribute list: %s", attrlist)
 
         ldap_result_id = self.ldap.search(
             basedn,
             search_scope,
             filterstr=filterstr,
-            attrlist=attrlist
+            attrlist=attrlist,
         )
 
-        logger.debug(f"ldap_result_id is {ldap_result_id}")
+        logger.debug("ldap_result_id is %s", ldap_result_id)
 
         results = []
         end_of_results = False
         while not end_of_results:
             try:
                 result_type, result_data = self.ldap.result(ldap_result_id, 0)
-            except ldap.NO_SUCH_OBJECT as _:    # pylint: disable=no-member
-                # No dn found, so nothing to add.
-                logger.error("no such object")
-                pass
+            except ldap.NO_SUCH_OBJECT:
+                logger.warning("LDAP NO_SUCH_OBJECT for basedn=%s filter=%s", basedn, filterstr)
+                break
             else:
-                if result_type == ldap.RES_SEARCH_ENTRY:  # pylint: disable=no-member
+                if result_type == ldap.RES_SEARCH_ENTRY:
                     logger.debug("found an LDAP entry")
                     results.append(result_data)
                 else:
                     logger.debug("no more LDAP data")
                     end_of_results = True
 
-        logger.info(f"found {len(results)} results")
+        logger.info("found %d results", len(results))
 
-        if (len(results) == 0):
-            msg = "no LDAP results"
-            raise GreenLDAPNoResultsException(msg)
+        if not results:
+            raise GreenLDAPNoResultsException("no LDAP results")
 
         # Process the results
         result_set: LDAPResult = {}
         for result in results:
             # The result will be of the form [(dn, {attributes})]
-            (dn, attribute_values) = self.process_result(result[0])
+            dn, attribute_values = self.process_result(result[0])
             result_set[dn] = attribute_values
 
         return result_set
 
-    def sunetid_account_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> LDAPResult:
+    def _build_uid_filter(self, sunetid: str) -> str:
+        """Return a safe LDAP filter string for the given uid.
+
+        The sunetid value is escaped to prevent LDAP filter injection.
+        """
+        escaped = ldap.filter.escape_filter_chars(sunetid)
+        return f"(uid={escaped})"
+
+    def sunetid_account_info(
+        self,
+        sunetid: str,
+        attrlist: Optional[list[str]] = None,
+    ) -> LDAPResult:
         """Return the account tree information for user with uid equal to ``sunetid``.
 
         :param sunetid: sunetid of user whose information you seek
@@ -711,11 +755,14 @@ class LDAP():
         getting no results.
 
         """
-        basedn    = BASEDN_ACCOUNTS
-        filterstr = f"uid={sunetid}"
-        return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
+        filterstr = self._build_uid_filter(sunetid)
+        return self.search(BASEDN_ACCOUNTS, filterstr=filterstr, attrlist=attrlist)
 
-    def sunetid_people_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> LDAPResult:
+    def sunetid_people_info(
+        self,
+        sunetid: str,
+        attrlist: Optional[list[str]] = None,
+    ) -> LDAPResult:
         """Return the people tree information for user with uid equal to ``sunetid``.
 
         :param sunetid: sunetid of user whose information you seek
@@ -743,11 +790,14 @@ class LDAP():
         getting no results.
 
         """
-        basedn    = BASEDN_PEOPLE
-        filterstr = f"uid={sunetid}"
-        return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
+        filterstr = self._build_uid_filter(sunetid)
+        return self.search(BASEDN_PEOPLE, filterstr=filterstr, attrlist=attrlist)
 
-    def sunetid_info(self, sunetid: str, attrlist:  Optional[list[str]]=None) -> LDAPResult:
+    def sunetid_info(
+        self,
+        sunetid: str,
+        attrlist: Optional[list[str]] = None,
+    ) -> LDAPResult:
         """Return the people and accounts tree information for user with uid equal to ``sunetid``.
 
         :param sunetid: sunetid of user whose information you seek
@@ -777,6 +827,5 @@ class LDAP():
         getting no results.
 
         """
-        basedn    = BASEDN
-        filterstr = f"uid={sunetid}"
-        return self.search(basedn, filterstr=filterstr, attrlist=attrlist)
+        filterstr = self._build_uid_filter(sunetid)
+        return self.search(BASEDN, filterstr=filterstr, attrlist=attrlist)
