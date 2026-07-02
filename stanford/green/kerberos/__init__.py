@@ -23,8 +23,9 @@ Simple example::
 
   keytab_path = "/etc/krb5.keytab"
   principal   = "host/myserver.stanford.edu@stanford.edu"
+  ticket_file = "/tmp/krb5cc_myservice"
 
-  kt = KerberosTicket(keytab_path, principal, age_limit_seconds=30)
+  kt = KerberosTicket(keytab_path, principal, ticket_file, age_limit_seconds=30)
   kt.create_ticket_file()
   # You now have a valid Kerberos context with the Kerberos ticket
   # file pointed to by the KRB5CCNAME environment variable.
@@ -48,8 +49,8 @@ from typing import Any, Optional  # pylint: disable=wrong-import-order
 class KerberosTicket():
     """A Kerberos ticket object.
 
-    Initialization requires the passing in of the keytab file path *and* the principal
-    name.
+    Initialization requires the passing in of the keytab file path, the principal
+    name, *and* the ticket file path.
 
     The ticket lockfile location defaults to the ticket filename suffixed with ".lock".
 
@@ -159,10 +160,10 @@ class KerberosTicket():
 
                 if (stderr):
                     raise RuntimeError(f"error obtaining a Kerberos ticket: {stderr}")
-            self.debug(f"Kerberos lock file should now be released")
+            self.debug("Kerberos lock file should now be released")
         else:
             self.debug("Kerberos ticket file is not old enough to need updating")
 
-        # Whether the ticket file was updated or now, set KRB5CCNAME to
+        # Whether or not the ticket file was updated, set KRB5CCNAME to
         # the path of the ticket file.
         os.environ["KRB5CCNAME"] = f"FILE:{self.ticket_file}"
