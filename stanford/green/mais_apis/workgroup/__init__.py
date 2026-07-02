@@ -1,4 +1,4 @@
-"""Python wrpper around MaIS Workgroup API"""
+"""Python wrapper around MaIS Workgroup API"""
 
 from stanford.green.mais_apis import MaIS_API
 
@@ -66,13 +66,13 @@ class WorkgroupAPI(MaIS_API):
                 id = member_data['id']
                 members.append(id)
             else:
-                msg = f"member data '{member_data}' missing required vriable 'id'"
+                msg = f"member data '{member_data}' missing required variable 'id'"
                 raise ValueError(msg)
 
         return members
 
     def list_admins(self) -> None:
-        """Return a list of members.
+        """Return a list of admins.
         """
         msg = "this method has not yet been implemented"
         raise NotImplementedError(msg)

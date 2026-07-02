@@ -17,8 +17,8 @@ def run_command(cmd: List[str], raise_exception_on_error: bool = False) \
     value of False, return stdout, stderr, and the exit code even if
     the command exits with an error.
 
-    If the raise_exception_on_error parameter is set to True, if the
-    command exists with a non-zero value rise an exception with the
+    If the raise_exception_on_error parameter is set to True and the
+    command exits with a non-zero value, raise an exception with the
     exception message containing stderr and the exit code.
 
     """
